@@ -1,0 +1,108 @@
+#cardAndEditor{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#global_nav {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+#nav_ul {
+    overflow:hidden;
+    padding: 0px;
+    margin: 0px 0px 0px 0px;
+}
+
+#nav_ul li {
+    list-style: none;
+    float: left;
+}
+
+#nav_ul li a {
+    display: block;
+    text-decoration: none;
+    padding: 8px 8px;
+    color: white;
+    text-align: left;
+}
+
+#card_preview{
+    margin: 8px 4px 8px 0;
+}
+
+#editor{
+    margin: 8px 0px 4px 0px;
+    width: 400px;
+}
+
+#scale_number{
+    text-align: right;
+    width: 50px;
+}
+
+.tip{
+    font-size: 10px;
+    color: dimgray;
+    font-style: italic;
+}
+
+.block{
+    padding: 4px;
+    margin: 4px;
+    border-style: solid;
+    border-width: 1px;
+}
+
+.verticalBlock{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.description{
+    font-size: 14px;
+}
+
+.description2{
+    font-size: 14px;
+    color: dimgray;
+}
+
+button{
+    font-size: 14px;
+    height: 20px;
+}
+
+.leftDescription{
+    width: 65px;
+}
+
+textarea{
+    width: 300px;
+}
+
+@font-face {
+    font-family: "DFNewChuan";
+    src: url("./font/DFNewChuan_Md_HK_BF.ttf") format('truetype');
+    font-display: block;
+}
+
+@font-face {
+    font-family: "JinMeiMaoCaoXing";
+    src: url("./font/JinMeiMaoCaoXing.ttf") format('truetype');
+    font-display: block;
+}
+
+@font-face {
+    font-family: "FangZhengZhunYuan";
+    src: url("./font/FangZhengZhunYuan.ttf") format('truetype');
+    font-display: block;
+}
+
+@font-face {
+    font-family: "FangZhengLiShu";
+    src: url("./font/FangZhengLiShuJianTi.ttf") format('truetype');
+    font-display: block;
+}
+
+

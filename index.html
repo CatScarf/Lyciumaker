@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lycium三国杀卡牌制作器</title>
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <link rel="shortcut icon" type="image/x-icon" href="resources/icon.png">
+    <script type="text/javascript" src="./jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<nav id="global_nav">
+  <ul id="nav_ul">
+    <li><a href="#" id="AppName">Lycium三国杀卡牌制作器V0.51</a></li>
+    <li><a href="https://tieba.baidu.com/p/7683167753" target="_blank">反馈建议&分享卡牌</a></li>
+    <li><a href="#" style="display: none">投喂开发者</a></li>
+  </ul>
+</nav>
+
+<div id="cardAndEditor">
+
+<canvas id="card_preview">
+</canvas>
+
+<div id="editor">
+    <div class="block">
+        <div class="verticalBlock">
+            <button id="download_card">将卡牌下载到本地</button>
+        </div>
+    </div>
+    <div id="illustration_scaling" class="block">
+        <div class="verticalBlock">
+            <div class="description  leftDescription">导入插画</div>
+            <input type="file" class="function_button" id="import_illustration" accept="image/jpeg, image/png"></button>
+        </div>
+        <div class="verticalBlock">
+            <div class="description  leftDescription">插画缩放</div>
+            <input type="number" id="scale_number" onfocus="this.select()" value="100">
+            <div class="description">%</div>
+            <button id="zoom_out">-25%</button>
+            <button id="zoom_in">+25%</button>
+            <button id="reset_scale">重置</button>
+        </div>
+        <div class="verticalBlock">
+            <div class="tip">拖拽图片可改变插画位置</div>
+        </div>
+    </div>
+    <div class="block">
+        <input type="checkbox" id="translateBox" checked="checked" value="first_checkbox">
+        <label class="description" for="translateBox">自动简繁转换</label>
+        <div class="tip" id="s2ttip">由于简体繁体并非一一对应，自动简繁转换可能会出现错误，如有错误建议关闭此选项并使用繁体输入</div>
+    </div>
+    <div class="block">
+        <div class="verticalBlock">
+            <div class="leftDescription">
+                <input type="checkbox" id="isIllustrator" value="first_checkbox">
+                <label class="description" for="isIllustrator">画师</label>
+            </div>
+            <input id="Illustrator" class="nearDes" style="display: none" type="text" onfocus="this.select()" value="未知画师">
+        </div>
+    </div>
+    <div class="block">
+        <div class="verticalBlock">
+            <div class="description  leftDescription">武将称号</div>
+            <input id="hero_title" class="nearDes" type="text" onfocus="this.select()" value="乱世的枭雄">
+            <div class="tip traditional_please" style="display: none">请输入繁体</div>
+        </div>
+    </div>
+    <div class="block">
+        <div class="verticalBlock">
+            <div  class="description  leftDescription">武将名</div>
+            <input id="hero_name" type="text" onfocus="this.select()" value="刘备">
+            <div class="tip traditional_please" style="display: none">请输入繁体</div>
+        </div>
+    </div>
+    <div class="block">
+        <div class="verticalBlock">
+            <div class="description  leftDescription">势力</div>
+            <select id="power_select">
+                <option value ="wei">魏</option>
+                <option value ="shu" selected="selected">蜀</option>
+                <option value="wu">吴</option>
+                <option value="qun">群</option>
+                <option value="shen">神</option>
+            </select>
+        </div>
+    </div>
+    <div class="block">
+        <div class="verticalBlock">
+            <div class="description leftDescription">体力上限</div>
+            <input id="heart_limit" type="number" value="4" onfocus="this.select()">
+            <button id="reset_heart_limit">重置</button>
+        </div>
+    </div>
+    <div class="block">
+        <div class="verticalBlock">
+            <div class="description leftDescription">技能数量</div>
+            <input id="skill_number" type="number" value="2" onfocus="this.select()">
+        </div>
+    </div>
+    <div id="sk1Block" class="block">
+        <div class="verticalBlock">
+        <div class="description leftDescription">技能1</div>
+            <input type="checkbox" id="isItalic1" value="first_checkbox">
+            <label class="description description2" for="isItalic1">斜体</label>
+        </div>
+        <div class="verticalBlock">
+            <div class="description leftDescription">技能名</div>
+            <input id="sk1n" type="text" onfocus="this.select()" value="仁德">
+            <div class="tip traditional_please" style="display: none">请输入繁体</div>
+        </div>
+        <div class="verticalBlock">
+        <div class="description leftDescription">技能描述</div>
+            <textarea rows="4" id="sk1" onfocus="this.select()">出牌阶段限一次，你可以将任意数量的手牌交给其他角色，若你给出的牌张数达到两张或更多时，你回复1点体力。</textarea>
+        </div>
+    </div>
+    <div id="sk2Block"class="block">
+        <div class="verticalBlock">
+        <div class="description leftDescription">技能2</div>
+            <input type="checkbox" id="isItalic2" value="first_checkbox">
+            <label class="description description2" for="isItalic2">斜体</label>
+        </div>
+        <div class="verticalBlock">
+            <div class="description leftDescription">技能名</div>
+            <input id="sk2n" type="text" onfocus="this.select()" value="激将">
+            <div class="tip traditional_please" style="display: none">请输入繁体</div>
+        </div>
+        <div class="verticalBlock">
+            <div class="description leftDescription">技能描述</div>
+            <textarea rows="4" id="sk2" onfocus="this.select()">主公技，当你需要使用或打出一张【杀】时，你可令其他蜀势力角色打出一张【杀】（视为由你使用或打出）。</textarea>
+        </div>
+    </div>
+</div>
+
+</div>
+</body>
+    <script type="module" src="./index.js"></script>
+</html>
