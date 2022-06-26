@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
-import { onMounted, Ref, ref } from 'vue';
-import { Canvas, setCanvasSize, clearCanvas } from '../draw/draw'
+import { onMounted, Ref, ref, watch } from 'vue';
+import { Canvas, setCanvasSize, clearCanvas, drawIllatration, outFrame, drawOutFrame } from '../draw/draw'
 import { Coord } from '../util/coord';
 
 import { Card, Power } from './card'
@@ -13,6 +13,21 @@ const styleSize = new Coord().like(logicSize)
 var rcvs: Ref<Canvas>  // Canvas相关参数
 const rcard: Ref<Card> = ref(new Card())  // 卡牌相关参数
 
+// 更改插画
+function changeIllastration(event: any) {
+    const url: string = URL.createObjectURL(event.target.files[0])
+    rcard.value.importIllastration(url, rcvs.value)
+}
+
+// 缩放
+watch(() => {return rcard.value.scale}, (n, o) => {
+    rcard.value.scale = Math.max(rcard.value.scale, 1)
+    const ratio = typeof(n / 100) === 'number' ? n / 100 : 1
+    const f2 = (e: number) => Number(e.toFixed(2))
+    rcard.value.w = f2(rcard.value.illastration.width * ratio)
+    rcard.value.h = f2(rcard.value.illastration.height * ratio)
+})
+
 // 动画循环
 function loop() {
     // 清空画布
@@ -21,8 +36,10 @@ function loop() {
     // 拖拽插画
 
     // 绘制插画
+    drawIllatration(rcvs.value, rcard.value)
 
     // 绘制外框
+    drawOutFrame(rcvs.value, rcard.value, outFrame)
 
     // 绘制体力
 
@@ -70,7 +87,8 @@ function initCanvas() {
 // 挂载时初始化canvas
 onMounted(() => {
     initCanvas()
-    window.requestAnimationFrame(loop);  
+    window.requestAnimationFrame(loop);
+    rcard.value.importIllastration('/png/刘备-六星耀帝.png', rcvs.value);
 })
 
 </script>
@@ -85,7 +103,7 @@ onMounted(() => {
             <div class="label x4">导入插画</div>
         </div>
         <div class="row-flex-center">
-            <input type="file" accept="image/jpeg, image/png">
+            <input type="file" accept="image/jpeg, image/png" @change="changeIllastration($event)">
         </div>
 
         <hr class="cardHr">
@@ -97,16 +115,16 @@ onMounted(() => {
         </div>
         <div class="row-flex-center">
             <div class="x2 mona">W:</div>
-            <input class="textInput" type="number" v-model="rcard.w">
+            <input class="textInput" type="number" v-model="rcard.w" disabled="true">
             <div class="x2 mona">H:</div>
-            <input class="textInput" type="number" v-model="rcard.h">
+            <input class="textInput" type="number" v-model="rcard.h" disabled="true">
         </div>
         <div class="row-flex-center">
             <div class="x2">缩放</div>
             <input class="textInput" type="number" v-model="rcard.scale">
-            <div class="btn" @click="rcard.scale = Number((rcard.scale * 0.95).toFixed(2))">-</div>
-            <div class="btn" @click="rcard.scale = Number((rcard.scale * 1.05).toFixed(2))">+</div>
-            <div class="btn">重置</div>
+            <div class="btn" @click="rcard.scale = Number((rcard.scale * 0.97833).toFixed(2))">-</div>
+            <div class="btn" @click="rcard.scale = Number((rcard.scale * 1.02215).toFixed(2))">+</div>
+            <div class="btn" @click="rcard.scale = 100">重置</div>
         </div>
 
         <hr class="cardHr">
@@ -156,7 +174,7 @@ onMounted(() => {
         <div class="row-flex-center">
             <div class="x4">势力</div>
             <select v-model="rcard.power">
-                <option v-for="(val, name, idx) in Power" :value="val">{{val}}</option>
+                <option v-for="(val, name, idx) in Power" :value="val">{{name}}</option>
             </select>
             <input type="checkbox" v-model="rcard.isLord">
             <div>主公</div>

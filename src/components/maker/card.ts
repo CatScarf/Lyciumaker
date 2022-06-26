@@ -1,3 +1,5 @@
+import { Canvas } from "../draw/draw"
+
 // 技能
 class Skill {
     name: string
@@ -15,37 +17,45 @@ class Illastration {
     img: HTMLImageElement
     width: number = 0
     height: number = 0
-
-    scale: number = 1.0
-    x: number = 0
-    y: number = 0
-
     isLoad: boolean = false
 
     constructor() {
         this.img = new Image();
     }
 
-    import(path: string) {
-        this.img.src = path
+    // 导入插画
+    import(url: string, cvs: Canvas, card: Card) {
+        this.img.src = url
         this.img.onload = () => {
-            this.width = this.img.width
-            this.height = this.img.height
             this.isLoad = true
+
+            let w = cvs.logicSize.x
+            let h = w * (this.img.height / this.img.width)
+            if (h < cvs.logicSize.y) {
+                h = cvs.logicSize.y
+                w = h * (this.img.width / this.img.height)
+            }
+
+            this.width = w
+            this.height = h
+            card.w = w
+            card.h = h
+            card.scale = 100
         }
     }
 }
 
 // 势力
-export const Power = {
-    wei: '魏',
-    shu: '蜀',
-    wu: '吴',
-    qun: '群',
-    shen: '神',
-    jin: '晋'
+export const Power: {[key:string]:string} = {
+    '魏': 'wei',
+    '蜀': 'shu',
+    '吴': 'wu',
+    '群': 'qun',
+    '神': 'shen',
+    '晋': 'jin'
 }
 
+// 卡牌
 export class Card {
     illastration: Illastration = new Illastration() // 插画
     x: number = 0
@@ -57,15 +67,15 @@ export class Card {
     isProducer: boolean = false    // 是否绘制制作商
     isIllustrator: boolean = false // 是否绘制插画师
     isCardNum: boolean = false     // 是否绘制编号
-    producer: string = '未知版权'    // 制作商
-    illastrator: string = '未知画师' // 插画师
+    producer: string = '未知版权'   // 制作商
+    illastrator: string = '未知画师'// 插画师
     cardNum: string = 'SP'         // 编号
  
     isTranslate: boolean = true    // 是否自动简繁转换
     title: string = '未知称号'      // 称号
-    name: string = '劉備'              // 武将名
+    name: string = '劉備'          // 武将名
     
-    power: string = Power.shu      // 势力
+    power: string = Power['蜀']      // 势力
     isLord: boolean = false        //是否为主公
     heart: number = 4              // 体力值
     isHreatLimit: boolean = false  // 是否绘制体力上限
@@ -80,10 +90,12 @@ export class Card {
         this.skills.push(new Skill('激将', '主公技，当你需要使用或打出一张【杀】时，你可令其他蜀势力角色打出一张【杀】（视为由你使用或打出）。'))
     }
 
+    // 添加空白技能
     addSkill() {
         this.skills.push(new Skill('', ''))
     }
 
+    // 移除一个技能，默认为最后一个技能
     rmSkill(i: number=-1) {
         if (i > 0) {
             this.skills.splice(i, 1)
@@ -91,5 +103,10 @@ export class Card {
             this.skills.splice(this.skills.length - 1, 1)
         }
         
+    }
+
+    // 导入插画
+    importIllastration(url: string, cvs: Canvas) {
+        this.illastration.import(url, cvs, this)
     }
 }
