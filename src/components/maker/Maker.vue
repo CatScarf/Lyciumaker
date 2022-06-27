@@ -1,7 +1,8 @@
 <script setup lang="ts">
 
 import { onMounted, Ref, ref, watch } from 'vue';
-import { Canvas, setCanvasSize, clearCanvas, drawIllatration, outFrame, drawOutFrame } from '../draw/draw'
+// import { Canvas, misellaneous, setCanvasSize, clearCanvas, drawIllatration, outFrame, drawOutFrame, drawHeartLimit, drawSkill} from '../draw/draw'
+import * as dw from '../draw/draw'
 import { Coord } from '../util/coord';
 
 import { Card, Power } from './card'
@@ -10,7 +11,7 @@ const logicWidth = 400
 const logicSize = new Coord(logicWidth, logicWidth * (88 / 63))
 const styleSize = new Coord().like(logicSize)
 
-var rcvs: Ref<Canvas>  // Canvas相关参数
+var rcvs: Ref<dw.Canvas>  // Canvas相关参数
 const rcard: Ref<Card> = ref(new Card())  // 卡牌相关参数
 
 // 更改插画
@@ -31,19 +32,23 @@ watch(() => {return rcard.value.scale}, (n, o) => {
 // 动画循环
 function loop() {
     // 清空画布
-    clearCanvas(rcvs.value)
+    dw.clearCanvas(rcvs.value)
 
     // 拖拽插画
 
     // 绘制插画
-    drawIllatration(rcvs.value, rcard.value)
+    dw.drawIllatration(rcvs.value, rcard.value)
 
     // 绘制外框
-    drawOutFrame(rcvs.value, rcard.value, outFrame)
+    dw.drawOutFrame(rcvs.value, rcard.value, dw.outFrame)
 
     // 绘制体力
+    dw.drawHeartLimit(rcvs.value, rcard.value, dw.misellaneous)
 
     // 绘制技能
+    dw.drawSkill(rcvs.value, rcard.value, dw.misellaneous)
+
+    // 绘制武将名
 
     // 绘制称号
 
@@ -71,6 +76,16 @@ function changeNumSkill() {
     }
 }
 
+// 确保体力值大于等于0
+watch(() => {return rcard.value.heart}, (n, o) => {
+    rcard.value.heart = Math.max(0, rcard.value.heart)
+    rcard.value.heartLimit = Math.max(rcard.value.heart, rcard.value.heartLimit)
+})
+
+// 确保体力上限大于体力值
+watch(() => {return rcard.value.heartLimit}, (n, o) => {
+    rcard.value.heartLimit = Math.max(rcard.value.heart, rcard.value.heartLimit)
+})
 
 // 初始化Canvas
 function initCanvas() {
@@ -81,7 +96,7 @@ function initCanvas() {
         logicSize: logicSize,
         displaySize: styleSize
     })
-    setCanvasSize(rcvs.value)
+    dw.setCanvasSize(rcvs.value)
 }
 
 // 挂载时初始化canvas
@@ -191,9 +206,9 @@ onMounted(() => {
         </div>
         <div v-show="rcard.isHreatLimit" class="row-flex-center">
             <div class="x4">体力上限</div>
-            <input class="textInput" type="number" v-model="rcard.hreatLimit">
-            <div class="btn" @click="rcard.hreatLimit--">-</div>
-            <div class="btn" @click="rcard.hreatLimit++">+</div>
+            <input class="textInput" type="number" v-model="rcard.heartLimit">
+            <div class="btn" @click="rcard.heartLimit--">-</div>
+            <div class="btn" @click="rcard.heartLimit++">+</div>
         </div>
         
         <hr class="cardHr">
@@ -233,6 +248,12 @@ onMounted(() => {
 </template>
 
 <style scoped>
+
+@font-face {
+    font-family: "FangZhengZhunYuan";
+    src: url("/fonts/FangZhengZhunYuan.ttf") format('truetype');
+    font-display: block;
+}
 
 #maker {
     font-family: "PingFang SC", SimHei, monospace, Monaco, Consolas, monospace;

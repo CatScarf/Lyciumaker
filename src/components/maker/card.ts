@@ -79,7 +79,7 @@ export class Card {
     isLord: boolean = false        //是否为主公
     heart: number = 4              // 体力值
     isHreatLimit: boolean = false  // 是否绘制体力上限
-    hreatLimit: number = 4         // 体力上限
+    heartLimit: number = 4         // 体力上限
 
     numSkill: number = 0; // 技能数量
     skills: Skill[] = []  // 技能
