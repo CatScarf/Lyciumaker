@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { onMounted, Ref, ref } from 'vue'
-import { Fragments } from './fragment'
+import { Fragments, refFragments } from './fragment'
 import { setCanvasSize, clearCanvas, drawAuxiliaryLines, drawText, drawCursorPosition } from './draw'
 import { Mouse, Box, moveTransBox, drawTransBox } from './move'
 
@@ -21,7 +21,7 @@ let logicSize: number[];  // canvas的逻辑大小
 let displaySize: number[];  // canvas的绘制大小
 
 // 所有字符片段
-const refFragments = ref(new Fragments(width))
+refFragments.value.width = width
 
 // 鼠标相关变量
 let clientX: Ref<number> = ref(0)

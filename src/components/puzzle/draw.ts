@@ -1,6 +1,7 @@
 import { Fragment } from "./fragment";
 import { Mouse, Box } from "./move";
-import { contrastAddFont } from "./dynamicFont"
+import * as df from "../fonts/dynamicFont"
+
 
 // 设置canvas大小
 export function setCanvasSize(canvas: HTMLCanvasElement,
@@ -76,7 +77,7 @@ export function drawText(ctx: CanvasRenderingContext2D, fg: Fragment, width: num
     tempCtx.textBaseline = "middle"
 
     // 获取字体
-    contrastAddFont(text)
+    df.fontsTexts.jinmeiTexts = df.contrastAddFont(df.fontsTexts.jinmeiTexts, text)
     tempCtx.font = width + "px JinMeiMaoCaoXing-" + text
 
 

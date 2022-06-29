@@ -1,3 +1,8 @@
+import { ref, Ref } from "vue"
+import * as dw from '../draw/draw'
+import * as df from '../fonts/dynamicFont'
+import { Coord } from '../util/coord'
+
 // 大写汉字
 class UpperNumber {
     i: number = -1
@@ -15,8 +20,10 @@ export class Fragment {
     text: string[]
     size: number[]
     mask: number[]
+    width: number
 
     constructor(width: number=512, _fg: Fragment | undefined = undefined) {
+        this.width = width
         this.selected = [false, false]
         if (typeof(_fg) === 'undefined') {
             this.text = [upperNumber.get()]
@@ -68,6 +75,44 @@ export class Fragment {
 
     isSelect() {
         return this.selected[0] === true || this.selected[1] === true
+    }
+
+    draw(mainctx: CanvasRenderingContext2D, margin: number = 0) {
+        // 基本信息
+        const width = this.width
+        let text: string = this.text[0]
+        text = typeof (text) == 'undefined' ? '' : text[0]
+        const size: number[] = this.size
+        const mask: number[] = this.mask
+
+        // 临时Canvas
+        const logicSize = new Coord(width, width)
+        const cvs = dw.tempCanvas(logicSize, logicSize)
+    
+        // 绘制相关参数
+        const dx = (Number(width) - Number(size[2])) / 2 + size[0] 
+        const dy = (Number(width) - Number(size[3])) / 2 + size[1]
+        const sx = (mask[0] - dx) / size[2] * width
+        const sy = (mask[1] - dy) / size[3] * width
+        const sw = (mask[2] - mask[0]) / size[2] * width
+        const sh = (mask[3] - mask[1]) / size[3] * width
+        cvs.ctx.textAlign = "center"
+        cvs.ctx.textBaseline = "middle"
+
+        // 获取字体
+        df.fontsTexts.jinmeiTexts = df.contrastAddFont(df.fontsTexts.jinmeiTexts, text)
+        cvs.ctx.font = width + "px JinMeiMaoCaoXing-" + text
+    
+        // 绘制蒙版
+        cvs.ctx.rect(sx, sy, sw, sh);
+        cvs.ctx.clip();
+    
+        // 绘制文字
+        cvs.ctx.fillStyle = 'black'
+        cvs.ctx.fillText(text, width / 2, width / 2)
+    
+        // 将临时Canvas绘制到主Canvas上
+        mainctx.drawImage(cvs.canvas, dx + Number(margin), dy + Number(margin), size[2], size[3])
     }
 
 }
@@ -142,4 +187,34 @@ export class Fragments {
 
         return JSON.stringify({'head': headJson, 'body': bodyJson})
     }
+
+    fromjson(json: string) {
+        const parsed = JSON.parse(json)
+        this.sch = parsed.head.sch
+        this.zch = parsed.head.zch
+        this.describe = parsed.head.describe
+        this.font = parsed.head.font
+        this.flist = []
+        for(let fgjson of parsed.body) {
+            const fg = new Fragment(this.width)
+            fg.text = fgjson.text
+            fg.size = fgjson.size
+            fg.mask = fgjson.mask
+            this.flist.push(fg)
+        }
+
+        return this
+    }
+
+    draw() {
+        const size = new Coord(this.width, this.width)
+        const maincvs = dw.tempCanvas(size, size)
+        for (let i = 0; i < this.flist.length; i++) {
+            const fg = this.flist[i]
+            fg.draw(maincvs.ctx, 0)
+        }
+        return maincvs
+    }
 }
+
+export let refFragments: Ref<Fragments> = ref(new Fragments())

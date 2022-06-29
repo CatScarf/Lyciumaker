@@ -6,12 +6,21 @@ import Maker from './components/maker/Maker.vue'
 
 import { refChars, jsonInfo } from './components/puzzle/chars';
 
+import {Fragment, Fragments, refFragments} from './components/puzzle/fragment'
+import CharPreview from './components/puzzle/CharPreview.vue';
+
 enum Page {
   Maker,
   Puzzle
 }
 
 const page: Ref<Page> = ref(Page.Maker)
+const isSmallCharHover: Ref<boolean> = ref(false)
+const refHoverFgs: Ref<Fragments> = ref(new Fragments())
+
+window.onbeforeunload = (event: any) => {
+  return "您确认要离开吗？所有内容将会丢失！"
+}
 
 </script>
 
@@ -39,7 +48,7 @@ const page: Ref<Page> = ref(Page.Maker)
     </div>
 
     <div id="chars" class="row-flex-center">
-        <div class="card" v-for="char in refChars.jsons">{{jsonInfo(char)}}</div>
+        <div class="char card" v-for="char in refChars.jsons" @click="refFragments.fromjson(char)" @mouseenter="isSmallCharHover = true; refHoverFgs = new Fragments().fromjson(char)" @mouseleave="isSmallCharHover = false">{{jsonInfo(char)}}</div>
     </div>
 
     <div v-show="page === Page.Maker">
@@ -49,6 +58,10 @@ const page: Ref<Page> = ref(Page.Maker)
     <div v-show="page === Page.Puzzle">
       <DrawBoard></DrawBoard>
     </div>
+  </div>
+
+  <div id="char-preview" v-show="isSmallCharHover">
+    <CharPreview class="relative-center" width='256' :subcvs="refHoverFgs.draw()"></CharPreview>
   </div>
 </template>
 
@@ -89,10 +102,40 @@ const page: Ref<Page> = ref(Page.Maker)
   padding: 1px;
 }
 .card {
-    border-radius: 5px;
-    box-shadow: 0px 0px 7px 0px rgb(167 161 161);
-    padding: 5px;
-    margin: 5px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 7px 0px rgb(167 161 161);
+  padding: 5px;
+  margin: 5px;
 }
+
+.char {
+  user-select: none;
+}
+
+.char:hover {
+  background-image: linear-gradient(to bottom right, #81fbb878, #28c76f78);
+}
+
+.char:active {
+  background-image: linear-gradient(to bottom right, #81fbb8, #28c76f);
+}
+
+#char-preview {
+  position: absolute;
+  /* background-color: rgba(0, 0, 0, 0.575); */
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.relative-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
 
 </style>

@@ -1,3 +1,4 @@
+// 下载Json
 export function downloadJson(fileName: string, jsonStr: string) {
     const A = document.createElement('a')
     A.download = fileName

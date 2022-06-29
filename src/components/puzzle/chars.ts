@@ -1,5 +1,6 @@
 import { Ref, ref } from 'vue'
 import { Fragments } from './fragment'
+import { translate } from '../fonts/trainslate'
 
 // Json化的字符表
 class Chars {
@@ -26,6 +27,25 @@ class Chars {
             this.zchs.push(fgs.zch[0])
             this.jsons.push(fgs.tojson())
         }
+    }
+
+    hasjson(char: string) {
+        function findJson(jsons: string[], chs: string[], char: string) {
+            const i = chs.indexOf(char)
+            return i >= 0 ? jsons[i] : null
+        }
+        const res = [
+            findJson(this.jsons, this.schs, char),
+            findJson(this.jsons, this.zchs, char),
+            findJson(this.jsons, this.schs, translate(char)),
+            findJson(this.jsons, this.zchs, translate(char))
+        ]
+        for (let json of res) {
+            if (json) {
+                return json
+            }
+        }
+        return null
     }
 }
 export const refChars: Ref<Chars> = ref(new Chars())

@@ -4,8 +4,8 @@ import { onMounted, Ref, ref, watch } from 'vue';
 // import { Canvas, misellaneous, setCanvasSize, clearCanvas, drawIllatration, outFrame, drawOutFrame, drawHeartLimit, drawSkill} from '../draw/draw'
 import * as dw from '../draw/draw'
 import { Coord } from '../util/coord';
-
 import { Card, Power } from './card'
+import { translate } from '../fonts/trainslate'
 
 const logicWidth = 400
 const logicSize = new Coord(logicWidth, logicWidth * (88 / 63))
@@ -46,11 +46,10 @@ function loop() {
     dw.drawHeartLimit(rcvs.value, rcard.value, dw.misellaneous)
 
     // 绘制技能
-    dw.drawSkill(rcvs.value, rcard.value, dw.misellaneous)
+    const bottomy = dw.drawSkill(rcvs.value, rcard.value, dw.misellaneous).topy
 
-    // 绘制武将名
-
-    // 绘制称号
+    // 绘制称号与武将名
+    dw.frawTitleName(rcvs.value, rcard.value, bottomy)
 
     // 绘制底部信息
 
@@ -180,6 +179,7 @@ onMounted(() => {
         <div class="row-flex-center">
             <div class="x4">武将名</div>
             <input class="textInput" v-model="rcard.name">
+            <div class="translated" v-show="rcard.isTranslate">{{translate(rcard.name)}}</div>
         </div>
         <div class="row-flex-center">
             <div class="tip">检测到缺字，建议使用拼字功能</div>
@@ -251,7 +251,7 @@ onMounted(() => {
 
 @font-face {
     font-family: "FangZhengZhunYuan";
-    src: url("/fonts/FangZhengZhunYuan.ttf") format('truetype');
+    src: url("/fonts/FangZhengZhuYuan.ttf") format('truetype');
     font-display: block;
 }
 
@@ -342,6 +342,12 @@ onMounted(() => {
 
 .skill-text {
     min-height: 100px;
+}
+
+.translated {
+    color:gray;
+    padding: 0px 0px 0px 10px;
+    font-size: 10px
 }
 
 </style>
