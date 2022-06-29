@@ -1,7 +1,7 @@
 import { Canvas } from "../draw/draw"
 
 // 技能
-class Skill {
+export class Skill {
     name: string
     text: string
     isBold = false
@@ -69,11 +69,11 @@ export class Card {
     isCardNum: boolean = false     // 是否绘制编号
     producer: string = '未知版权'   // 制作商
     illastrator: string = '未知画师'// 插画师
-    cardNum: string = 'SP'         // 编号
+    cardNum: string = 'DIY 001'         // 编号
  
     isTranslate: boolean = true    // 是否自动简繁转换
     title: string = '未知称号'      // 称号
-    name: string = '劉備'          // 武将名
+    name: string = '刘备'          // 武将名
     
     power: string = Power['蜀']      // 势力
     isLord: boolean = false        //是否为主公

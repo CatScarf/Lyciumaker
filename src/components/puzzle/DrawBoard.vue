@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { onMounted, Ref, ref } from 'vue'
+import { onMounted, Ref, ref, watch } from 'vue'
 import { Fragments, refFragments } from './fragment'
 import { setCanvasSize, clearCanvas, drawAuxiliaryLines, drawText, drawCursorPosition } from './draw'
 import { Mouse, Box, moveTransBox, drawTransBox } from './move'
@@ -8,6 +8,10 @@ import { Mouse, Box, moveTransBox, drawTransBox } from './move'
 import EditCards from './EditCards.vue'
 import { downloadJson } from './util'
 import { refChars } from './chars'
+import { translate } from '../fonts/trainslate'
+
+// 自动繁体输入
+const refIsTranslate = ref(true)
 
 // 画布相关常量
 const displayw: number = 400 //显示宽高
@@ -134,6 +138,37 @@ function exportJson() {
         downloadJson(`${sp}-${td}.json`, refFragments.value.tojson())
     }
 }
+
+// 点击导入Json
+function importJsonClick() {
+    const fileElement = document.getElementById('import-json')
+    fileElement?.click()
+}
+
+// 导入Json
+function importJson(event: any) {
+    const file = event.target.files[0]
+    const reader = new FileReader()
+    reader.readAsText(file)
+    reader.onload = () => {
+        const fgs = new Fragments
+        try {
+            fgs.fromjson(reader.result as string)
+            refChars.value.add(fgs)
+        } catch (err) {
+            alert('Json解析失败! 错误信息: ' + err)
+        }
+
+    }
+}
+
+watch(() => {return refFragments.value.sch}, (n, o) => {
+    console.log(o, n)
+    if (refIsTranslate.value) {
+        refFragments.value.zch = translate(n)
+    }
+})
+
 </script>
 
 <template>
@@ -150,9 +185,13 @@ function exportJson() {
             <div class="exportLine">
                 <input class="textInput" v-model="refFragments.sch">
             </div>
-            <div class="exportLine">繁体汉字*</div>
+            <div class="row-flex-center">
+                <div class="exportLine">繁体*</div>
+                <input type="checkbox" v-model="refIsTranslate">
+                <div>自动</div>
+            </div>
             <div class="exportLine">
-                <input class="textInput" v-model="refFragments.zch">
+                <input class="textInput" v-model="refFragments.zch" :disabled="refIsTranslate">
             </div>
             <div class="exportLine">描述（选填）</div>
             <div class="exportLine">
@@ -164,15 +203,20 @@ function exportJson() {
             <div class="exportLine">
                 <button @click="exportJson">导出JSON</button>
             </div>
-            <div class="exportLine">
+            <div class="exportLine" style="visibility:hidden">
                 <button>上传至服务器</button>
             </div>
             <div class="exportLine" style="visibility:hidden">
                 <button>？？？？</button>
             </div>
             <div class="exportLine">
-                <button>导入JSON</button>
+                <button @click="importJsonClick()">导入JSON</button>
             </div>
+
+            <div class="row-flex-center" style="display: none;">
+                <input id='import-json' type="file" accept=".json" @change="importJson($event)">
+            </div>
+
         </div>
         <!-- 数值编辑器 -->
         <EditCards :refFragments='refFragments'></EditCards>
@@ -204,7 +248,7 @@ function exportJson() {
 }
 
 .exportLine {
-    margin: 10px;
+    margin: 5px;
 }
 
 .textInput {

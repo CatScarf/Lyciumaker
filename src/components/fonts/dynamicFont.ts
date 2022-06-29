@@ -1,6 +1,7 @@
 export const fontsTexts = {
-    jinmeiTexts: '',    // 已获取的金梅字体表
-    fangzhengTexts: ''  // 已获取的隶书字体表
+    jinmeiTexts: '',     // 已获取的金梅字体表
+    fangzhengTexts: '',  // 已获取的隶书字体表
+    newchuanTexts: ''        // 已获取的新篆字体表
 }
 
 // 增加新字体时的CSS文本内容

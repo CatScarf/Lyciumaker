@@ -28,7 +28,6 @@ function oninitCanvas() {
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
     width = Number(props.width)
     const size = new Coord(width, width)
-    console.log(canvas)
     cvs = {
         canvas: canvas,
         ctx: ctx,
@@ -45,21 +44,20 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="card">
+    <div class="glass-card">
         <canvas id="charPreview">
         </canvas>
     </div>
 </template>
 
 <style scoped>
-.card {
+.glass-card{
     backdrop-filter: blur(10px);
-    background-color: rgba(224, 224, 224, 0.522);
+    background-color: rgba(91, 91, 91, 0.148);
     border-radius: 10px;
-    box-shadow: 0px 0px 7px 0px rgb(167, 161, 161);
+    box-shadow: 0px 0px 7px 0px rgb(154, 154, 154);
     padding: 5px;
     margin: 5px;
-    width: fit-content;
 }
 
 </style>

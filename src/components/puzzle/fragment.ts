@@ -77,7 +77,7 @@ export class Fragment {
         return this.selected[0] === true || this.selected[1] === true
     }
 
-    draw(mainctx: CanvasRenderingContext2D, margin: number = 0) {
+    draw(mainctx: CanvasRenderingContext2D, margin: number = 0, line1Width: number, line2Width: number, nofill = false) {
         // 基本信息
         const width = this.width
         let text: string = this.text[0]
@@ -107,9 +107,23 @@ export class Fragment {
         cvs.ctx.rect(sx, sy, sw, sh);
         cvs.ctx.clip();
     
-        // 绘制文字
-        cvs.ctx.fillStyle = 'black'
-        cvs.ctx.fillText(text, width / 2, width / 2)
+        // 描边1
+        if(line1Width > 0) {
+            cvs.ctx.strokeStyle = 'white'
+            cvs.ctx.lineWidth = line1Width * width
+            cvs.ctx.strokeText(text, width / 2, width / 2);
+        }
+        // 描边2
+        if(line2Width > 0) {
+            cvs.ctx.strokeStyle = 'black'
+            cvs.ctx.lineWidth = line2Width * width
+            cvs.ctx.strokeText(text, width / 2, width / 2);
+        }
+        // 填充
+        if (!nofill) {
+            cvs.ctx.fillStyle = 'white'
+            cvs.ctx.fillText(text, width / 2, width / 2)
+        }
     
         // 将临时Canvas绘制到主Canvas上
         mainctx.drawImage(cvs.canvas, dx + Number(margin), dy + Number(margin), size[2], size[3])
@@ -206,12 +220,18 @@ export class Fragments {
         return this
     }
 
-    draw() {
-        const size = new Coord(this.width, this.width)
+    draw(line1Width = 0, line2Width = 0) {
+        const width = this.width
+        const size = new Coord(width, width)
         const maincvs = dw.tempCanvas(size, size)
         for (let i = 0; i < this.flist.length; i++) {
-            const fg = this.flist[i]
-            fg.draw(maincvs.ctx, 0)
+            this.flist[i].draw(maincvs.ctx, 0, line1Width, 0, true)
+        }
+        for (let i = 0; i < this.flist.length; i++) {
+            this.flist[i].draw(maincvs.ctx, 0, 0, line2Width, true)
+        }
+        for (let i = 0; i < this.flist.length; i++) {
+            this.flist[i].draw(maincvs.ctx, 0, 0, 0, false)
         }
         return maincvs
     }

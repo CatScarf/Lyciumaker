@@ -18,9 +18,11 @@ const page: Ref<Page> = ref(Page.Maker)
 const isSmallCharHover: Ref<boolean> = ref(false)
 const refHoverFgs: Ref<Fragments> = ref(new Fragments())
 
-window.onbeforeunload = (event: any) => {
-  return "您确认要离开吗？所有内容将会丢失！"
-}
+const refVersion: Ref<string> = ref('2.0')
+
+// window.onbeforeunload = (event: any) => {
+//   return "您确认要离开吗？所有内容将会丢失！"
+// }
 
 </script>
 
@@ -28,7 +30,7 @@ window.onbeforeunload = (event: any) => {
   <div style="width: fit-content;">
     <div id="nav-bar">
       <div class="nav-btn">
-        <div>Lycium制卡器2.0</div>
+        <div>Lycium制卡器{{refVersion}}</div>
       </div>
       <div class="nav-btn" @click="page = Page.Maker">
         <div>制卡</div>
@@ -52,7 +54,7 @@ window.onbeforeunload = (event: any) => {
     </div>
 
     <div v-show="page === Page.Maker">
-      <Maker></Maker>
+      <Maker :version="refVersion"></Maker>
     </div>
 
     <div v-show="page === Page.Puzzle">

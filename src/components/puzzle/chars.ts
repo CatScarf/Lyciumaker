@@ -53,5 +53,5 @@ export const refChars: Ref<Chars> = ref(new Chars())
 // 从Json中获取信息
 export function jsonInfo(json: string) {
     const head = JSON.parse(json).head
-    return `${head.sch[0]}-${head.zch[0]}`
+    return `${head.zch[0]}`
 }

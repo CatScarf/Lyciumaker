@@ -1,42 +1,16 @@
-import { Card } from "../maker/card";
-import { Coord } from "../util/coord";
-import { Power } from "../maker/card";
-import { withCtx } from "vue";
+import { misellaneous, Misellaneous } from "./misellaneous";
+import { LazyImage } from './lazyimage'
 
+import { sets } from '../fonts/sets'
 import * as df from '../fonts/dynamicFont'
 import { translate } from "../fonts/trainslate";
-import { sets } from '../fonts/sets'
+
+import { Skill, Card } from "../maker/card";
+import { Power } from "../maker/card";
+
 import { refChars } from '../puzzle/chars'
 import { Fragments } from "../puzzle/fragment";
-
-// 懒加载图片
-export class LazyImage {
-    url: string
-
-    loading: boolean = false
-    isLoad: boolean = false
-    img: HTMLImageElement = new Image()
-
-    constructor(url: string) {
-        this.url = url;
-    }
-
-    get() {
-        if (this.isLoad) {          // 已加载
-            return this.img
-        } else if (this.loading) {  // 正在加载
-            return null
-        } else {                    // 加载
-            this.loading = true
-            this.img.src = this.url
-            this.img.onload = () => {
-                this.loading = false
-                this.isLoad = true
-            }
-            return null
-        }
-    }
-}
+import { Coord, Rect } from "../util/coord";
 
 // 外框
 class OutFrame {
@@ -69,67 +43,6 @@ class OutFrame {
     }
 }
 export const outFrame = new OutFrame()
-
-
-// 杂项
-class Misellaneous {
-    img: LazyImage
-    hearts: {[key: string]: number[]} = {}
-
-    color = {
-        wei: "#ccd5ec",
-        shu: "#e9cfb2",
-        wu: "#d6e3bf",
-        qun: "#d2cbc8",
-        shen: "#c2bd64",
-        jin: "#e3b5f1"
-    }
-
-    skillBox = {
-        'wei':  [100, 50,  200, 100],
-        'shu':  [100, 150, 200, 100],
-        'wu':   [100, 250, 200, 100],
-        'qun':  [100, 350, 200, 100],
-        'shen': [100, 450, 200, 100],
-        'jin':  [100, 550, 200, 100],
-    }
-
-    constructor(url: string) {
-        this.img = new LazyImage(url)
-        const powers = 'wei,shu,wu,qun,shen,jin'.split(',')
-        const sxs = [350, 450]
-        const sys = [50, 150, 250, 355, 450, 550]
-        for (let i = 0; i < powers.length; i++) {
-            const name1 = `${powers[i]}HeartS`
-            const value1 = [sxs[0], sys[i], 100, 100]
-            const name2 = `${powers[i]}HeartLimitS`
-            const value2 = [sxs[1], sys[i], 100, 100]
-            this.hearts[name1] = value1
-            this.hearts[name2] = value2
-        }
-    }
-
-    getHeart(power: string, isLimit: boolean, isLord: boolean) {
-        if (isLord) {
-            power = 'shen'
-        }
-        const name = `${power}Heart${isLimit ? 'Limit' : ''}S`
-        return this.hearts[name]
-    }
-
-    getSkillbox(power: string): number[] {
-        return this.skillBox[power]
-    }
-
-    getImg() {
-        return this.img.get()
-    }
-
-    getColor(power: string) {
-        return this.color[power]
-    }
-}
-export const misellaneous = new Misellaneous('/png/miscellaneous.png')
 
 
 // 保存画布相关参数
@@ -200,7 +113,7 @@ export function drawHeartLimit(cvs: Canvas, card: Card, miscellanous: Misellaneo
     if (params.heartLimit >= params.maxn) {
         params.offset = params.offset * (params.maxn - 1) / (params.heartLimit - 1)
     }
-    
+
     const s1 = miscellanous.getHeart(card.power, false, card.isLord)
     const s2 = miscellanous.getHeart(card.power, true, card.isLord)
     const img = miscellanous.getImg()
@@ -220,8 +133,8 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
     const params = {
         x1: 104,                // 技能区最顶部的X坐标
         miny1: 435,             // 技能区最顶部的Y坐标不得低于此值
-        y2: 510,                // 技能区最底部的Y坐标
-        w: 228,                 // 技能区宽度
+        y2: 507,                // 技能区最底部的Y坐标
+        w: 235,                 // 技能区宽度
         indent: 0.5,            // 首字缩进为0.5个汉字宽度
         paragraphSpacing: 0.3,  // 段间距，实际段间距为此值 * yoff
 
@@ -238,27 +151,44 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
     cvs.ctx.textBaseline = 'bottom'
 
     // 获取技能高度
-    function skillHeight(text: string, isDraw: boolean = false, y: number = 0) {
+    function skillHeight(skill: Skill, isDraw: boolean = false, y: number = 0) {
         let line = ''
         let height = 0
         let numline = 0
+        const text = skill.text
 
         cvs.ctx.fillStyle = 'black'
-        cvs.ctx.font = params.fontSize + "px FangZhengZhunYuan"
+        cvs.ctx.font = params.fontSize + "px FangZhengZhuYuan"
 
         // 绘制一行
-        function drawLine(lastLine: boolean) {
+        function drawLine(isItalic: boolean, lastLine: boolean) {
             const dx = params.x1 + xoff
             const dy = y + numline * params.yoff
+            let font = params.fontSize + "px FangZhengZhuYuan"
+            if (isItalic) {
+                font = 'italic ' + font
+            }
             // 确保宽度对齐
             if (lastLine) {
                 cvs.ctx.fillText(line, dx, dy)
-            } else { 
+            } else {
                 const size = new Coord(cvs.ctx.measureText(line).width, params.fontSize * 2)  // 加高，确保文字完整显示
                 const tempCvs = tempCanvas(size, size, 1.5)  // 超分辨绘制，确保字体锐利
-                tempCvs.ctx.font = params.fontSize + "px FangZhengZhunYuan"
+                tempCvs.ctx.font = font
                 tempCvs.ctx.fillText(line, 0, params.fontSize)
-                cvs.ctx.drawImage(tempCvs.canvas, dx, dy - params.fontSize, params.w - xoff, params.fontSize * 2)  // 加高，确保文字完整显示
+                // 绘制粗体
+                if (line.length >= 3 && line[2] === '技') {
+                    let boldText = line.slice(0, 4)
+                    if (line.length >= 7 && line[6] === '技') {
+                        boldText = boldText + line.slice(4, 7)
+                    }
+                    const clearWidth = tempCvs.ctx.measureText(boldText).width
+                    tempCvs.ctx.clearRect(0, 0, clearWidth, size.y)
+
+                    tempCvs.ctx.font = 'bold ' + font
+                    tempCvs.ctx.fillText(boldText, 0, params.fontSize)
+                }
+                cvs.ctx.drawImage(tempCvs.canvas, dx, dy - params.yoff, params.w - xoff, params.fontSize * 2)  // 加高，确保文字完整显示
             }
         }
 
@@ -268,18 +198,22 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
             line = line + text[i]
             const textWidth = cvs.ctx.measureText(line).width
             if (textWidth >= params.w - xoff) {
-                if(isDraw) {
-                    drawLine(false)
+                if (i+1 < text.length && [',', '，', '.', '。', ';', '；', ':', '：'].indexOf(text[i+1]) >= 0) {
+                    i = i + 1
+                    line = line + text[i]
                 }
-                numline ++
+                if (isDraw) {
+                    drawLine(skill.isItalic, false)
+                }
+                numline++
                 line = ''
                 height = height + params.yoff
             }
         }
-        if(line != '') {
+        if (line != '') {
             height = height + params.yoff
             if (isDraw) {
-                drawLine(true)
+                drawLine(skill.isItalic, true)
             }
         }
         return height
@@ -293,7 +227,7 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
             let height = 0
             const spacing = heights > 0 ? params.paragraphSpacing * params.yoff : 0
             skillsy.push(params.y1 + heights + spacing + params.fontSize / 2)
-            height = skillHeight(skill.text, isDraw, heights + params.y1 + spacing + params.yoff)
+            height = skillHeight(skill, isDraw, heights + params.y1 + spacing + params.yoff)
             heights = heights + spacing + height
         }
         return {
@@ -304,13 +238,55 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
 
     // 确定字号和坐标
     let sh = skillsHeight(card)
-    while(params.fontSize >= 2 && sh.height > params.maxHeight) {
+    while (params.fontSize >= 2 && sh.height > params.maxHeight) {
         params.fontSize = params.fontSize - 1  // 缩小字体
         params.yoff = params.fontSize          // 缩小行间距
         sh = skillsHeight(card)
     }
     params.y1 = Math.min(params.y2 - sh.height, params.y1)  // 确定技能组顶端坐标
-    
+
+    // 绘制技能背景
+    function drawSkillBackground() {
+        const alpha = 'cc' // 透明度
+        const color = miscellanous.getColor(card.power) + alpha  // 颜色
+        const corner = 10      // 外框线角落距离
+        const margin = 3       // 内外框线间距
+        const lineWidth = 2    // 线宽
+        const widthScale = 20  // 宽度扩展
+        const heightScale = 7  // 高度扩展
+
+        // 四角坐标
+        const rect = new Rect(params.x1, params.y1, params.w, sh.height).scaleWidth(widthScale).scaleHeight(heightScale)
+
+        // 绘制样式
+        cvs.ctx.fillStyle = color
+        cvs.ctx.lineWidth = lineWidth
+        cvs.ctx.strokeStyle = color
+
+        // 绘制缺角矩形
+        function drawCornerRect(rect: Rect, corner: number, isFill = false) {
+            const line = [
+                rect.c1.down(corner), rect.c1.down(corner).right(corner), rect.c1.right(corner),
+                rect.c2.left(corner), rect.c2.down(corner).left(corner), rect.c2.down(corner),
+                rect.c3.up(corner), rect.c3.up(corner).left(corner), rect.c3.left(corner),
+                rect.c4.right(corner), rect.c4.right(corner).up(corner), rect.c4.up(corner),
+                rect.c1.down(corner)
+            ]
+            cvs.ctx.beginPath()
+            cvs.ctx.lineTo(line[0].x, line[0].y)
+            for (let c of line.slice(1, line.length)) {
+                cvs.ctx.lineTo(c.x, c.y)
+            }
+            isFill ? cvs.ctx.fill() : cvs.ctx.stroke()
+            cvs.ctx.closePath()
+        }
+
+        // 绘制
+        drawCornerRect(rect, corner, false)
+        drawCornerRect(rect.scale(-margin), corner, true)
+    }
+    drawSkillBackground()
+
     // 绘制技能文本
     sh = skillsHeight(card, true)
 
@@ -318,10 +294,10 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
     function drawSkillNameFrames() {
         const sb = miscellanous.getSkillbox(card.power)
         const img = miscellanous.getImg()
-        const sxywh = {sx: sb[0], sy: sb[1], sw: sb[2], sh: sb[3]}
+        const sxywh = { sx: sb[0], sy: sb[1], sw: sb[2], sh: sb[3] }
         const dw = 68  // 技能名外框宽度
         const xo = -69 // 技能名外框x偏移
-        const yo = -13 // 技能名外框y偏移
+        const yo = -16 // 技能名外框y偏移
         if (img) {
             for (let dy of sh.skillsy) {
                 cvs.ctx.drawImage(img, sxywh.sx, sxywh.sy, sxywh.sw, sxywh.sh, params.x1 + xo, dy + yo, dw, dw / 2)
@@ -334,11 +310,11 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
     // 绘制技能名
     function drawSkillNames() {
         const xo = -57       // 技能名x偏移
-        const yo = 13.5      // 技能名y偏移
+        const yo = 11.5      // 技能名y偏移
         const fontSize = 20  // 技能名字体大小
         const color = card.power === 'shen' ? "rgb(239, 227, 111)" : "rgb(0, 0, 0)"  // 技能名颜色
 
-        for(let i = 0; i < card.skills.length; i++) {
+        for (let i = 0; i < card.skills.length; i++) {
             const dy = sh.skillsy[i]
             let text = card.skills[i].name
             const fontName = 'FangZhengLiShuJianTi'
@@ -360,26 +336,51 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
 
 // 绘制武将名单字
 function drawNameChar(cvs: Canvas, x: number, y: number, fontSize: number, char: string) {
-    cvs.ctx.fillStyle = 'black'
+    cvs.ctx.fillStyle = 'white'
     cvs.ctx.textAlign = 'center'
     cvs.ctx.textBaseline = 'middle'
 
+    const line1Width = 0.08;
+    const line2Width = 0.07;
+
     const charjson = refChars.value.hasjson(char)
-    if (charjson) {
+    if (charjson) {  // 从拼字器绘制
         const fgs = new Fragments().fromjson(charjson)
-        const new_cvs = fgs.draw()
+        const new_cvs = fgs.draw(line1Width, line2Width)
         const off = fontSize / 2
         cvs.ctx.drawImage(new_cvs.canvas, x - off, y - off, fontSize, fontSize)
-    } else if (sets.jinmei.has(char)) {
-        df.fontsTexts.jinmeiTexts = df.contrastAddFont(df.fontsTexts.jinmeiTexts, char)
+    } else {  // 直接绘制
+        if (sets.jinmei.has(char)) {
+            df.fontsTexts.jinmeiTexts = df.contrastAddFont(df.fontsTexts.jinmeiTexts, char)
+        }
         cvs.ctx.font = fontSize + "px JinMeiMaoCaoXing-" + char
-        cvs.ctx.fillText(char, x, y)
-    } else {
-        cvs.ctx.font = fontSize + "px 'PingFang SC', SimHei, Monaco, Consolas, monospace"
+        // 描边1
+        cvs.ctx.strokeStyle = 'white'
+        cvs.ctx.lineWidth = line1Width * fontSize
+        cvs.ctx.strokeText(char, x, y);
+        // 描边2
+        cvs.ctx.strokeStyle = 'black'
+        cvs.ctx.lineWidth = line2Width * fontSize
+        cvs.ctx.strokeText(char, x, y);
+        // 填充
         cvs.ctx.fillText(char, x, y)
     }
+}
 
+// 绘制称号单字
+function drawTitleChar(cvs: Canvas, card: Card, x: number, y: number, fontSize: number, char: string) {
+    cvs.ctx.fillStyle = 'black'
+    cvs.ctx.textAlign = 'center'
+    cvs.ctx.textBaseline = 'middle'
+    const fontName = 'DFNewChuan'
+    df.fontsTexts.newchuanTexts = df.contrastAddFont(df.fontsTexts.newchuanTexts, char, fontName, `/fonts/${fontName}/${fontName}`)
 
+    cvs.ctx.strokeStyle = "rgb(0, 0, 0)";
+    cvs.ctx.lineWidth = 2.5;
+    cvs.ctx.fillStyle = misellaneous.getTitleColor(card.power, card.isLord)
+    cvs.ctx.font = fontSize + "px DFNewChuan-" + char
+    cvs.ctx.strokeText(char, x, y)
+    cvs.ctx.fillText(char, x, y)
 }
 
 // 绘制武将称号与武将名
@@ -390,32 +391,98 @@ export function frawTitleName(cvs: Canvas, card: Card, bottomy: number) {
         y1: 110,
         y2: 0,
         y3: bottomy,
-        fontsizeMax: 57
+        titleFontsizeMax: 24,
+        nameFontsizeMax: 57
     }
     params.y2 = params.y1 + (bottomy - 110) * params.ratio
 
-    cvs.ctx.fillStyle = 'red'
-    cvs.ctx.fillRect(params.x1, params.y1, 100, params.y2 - params.y1)
-    // cvs.ctx.fillStyle = 'blue'
-    // cvs.ctx.fillRect(params.x1, params.y2, 100, params.y3 - params.y2)
+    // 绘制武将称号
+    function drawTitle() {
+        let yoff = (params.y2 - params.y1) / card.title.length
+        let ytop = yoff / 2
+        const fontSize = Math.min(Math.ceil(yoff), params.titleFontsizeMax)
+        if (fontSize < yoff) {
+            yoff = fontSize
+            ytop = (params.y2 - params.y1 - yoff * (card.title.length - 1)) / 2
+        }
 
-    // 绘制名字
+        let text = card.title
+        if (card.isTranslate) {
+            text = translate(text)
+        }
+
+        for (let i = 0; i < text.length; i++) {
+            const y = params.y1 + ytop + yoff * i
+            const char = text[i]
+            drawTitleChar(cvs, card, params.x1, y, fontSize, char)
+        }
+    }
+    drawTitle()
+
+    // 绘制武将名
     function drawName() {
         let yoff = (params.y3 - params.y2) / card.name.length
-        const fontSize = Math.min(Math.ceil(yoff), params.fontsizeMax)
+        const fontSize = Math.min(Math.ceil(yoff), params.nameFontsizeMax)
         if (fontSize < yoff) {
             yoff = fontSize
         }
+
         let text = card.name
         if (card.isTranslate) {
             text = translate(text)
         }
-        for(let i = 0; i < text.length; i++) {
-            
+
+        for (let i = 0; i < text.length; i++) {
             const y = params.y2 + yoff / 2 + yoff * i
             const char = text[i]
             drawNameChar(cvs, params.x1, y, fontSize, char)
         }
     }
     drawName()
+}
+
+// 绘制底部信息
+export function drawBottom(cvs: Canvas, card: Card) {
+    const param = {
+        font: "9px FangZhengZhunYuan",
+        style: card.power == 'shen' ? '#ffffff' : '#000000',
+        x1: card.power == 'shen' ? 150 : 85,
+        x2: card.power == 'shen' ? 370 : 350,
+        y1: 539
+    }
+
+    let msg = "";
+    if(card.isProducer){
+        msg += "™&@ " + card.producer
+        msg += ".  "
+    }
+    if(card.isIllustrator){
+        msg += "illustration: " + card.illastrator
+    }
+    cvs.ctx.textBaseline = 'bottom'
+    cvs.ctx.textAlign = 'left'
+    cvs.ctx.font = param.font
+    cvs.ctx.fillStyle = param.style
+    cvs.ctx.fillText(msg, param.x1, param.y1)
+
+    if(card.isCardNum){
+        msg = "" + card.cardNum
+        cvs.ctx.textAlign = 'right'
+        cvs.ctx.fillText(msg, param.x2, param.y1);
+    }
+}
+
+
+export function drawVersion(cvs: Canvas, version: string) {
+    const param = {
+        text: 'Lycium在线制卡器' + version,
+        x: 18,
+        y: 549
+    }
+    cvs.ctx.font = '9px FangZhengZhunYuan'
+    cvs.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+    cvs.ctx.textBaseline = 'middle'
+    cvs.ctx.textAlign = 'left'
+
+    cvs.ctx.fillText(param.text, param.x, param.y)
 }

@@ -1,11 +1,16 @@
 <script setup lang="ts">
 
 import { onMounted, Ref, ref, watch } from 'vue';
-// import { Canvas, misellaneous, setCanvasSize, clearCanvas, drawIllatration, outFrame, drawOutFrame, drawHeartLimit, drawSkill} from '../draw/draw'
+import { misellaneous } from '../draw/misellaneous';
 import * as dw from '../draw/draw'
 import { Coord } from '../util/coord';
 import { Card, Power } from './card'
 import { translate } from '../fonts/trainslate'
+import { computed } from '@vue/reactivity';
+import { refChars } from '../puzzle/chars';
+import { sets } from '../fonts/sets';
+
+const props = defineProps(['version'])
 
 const logicWidth = 400
 const logicSize = new Coord(logicWidth, logicWidth * (88 / 63))
@@ -29,6 +34,29 @@ watch(() => {return rcard.value.scale}, (n, o) => {
     rcard.value.h = f2(rcard.value.illastration.height * ratio)
 })
 
+// 保存卡牌
+function exportCard() {
+    function download() {
+        const downloadLink = document.createElement('a');
+        const fileName = rcard.value.name + '.png'
+        downloadLink.setAttribute('download', fileName);
+        rcvs.value.canvas.toBlob((blob) => {
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                downloadLink.setAttribute('href', url);
+                downloadLink.click();
+            }
+        })
+    }
+    download();
+}
+
+// 导入插画
+function importIll() {
+    const file = document.getElementById('import-ill')
+    file?.click()
+}
+
 // 动画循环
 function loop() {
     // 清空画布
@@ -43,17 +71,19 @@ function loop() {
     dw.drawOutFrame(rcvs.value, rcard.value, dw.outFrame)
 
     // 绘制体力
-    dw.drawHeartLimit(rcvs.value, rcard.value, dw.misellaneous)
+    dw.drawHeartLimit(rcvs.value, rcard.value, misellaneous)
 
     // 绘制技能
-    const bottomy = dw.drawSkill(rcvs.value, rcard.value, dw.misellaneous).topy
+    const bottomy = dw.drawSkill(rcvs.value, rcard.value, misellaneous).topy
 
     // 绘制称号与武将名
     dw.frawTitleName(rcvs.value, rcard.value, bottomy)
 
     // 绘制底部信息
+    dw.drawBottom(rcvs.value, rcard.value)
 
     // 绘制版本信息
+    dw.drawVersion(rcvs.value, props.version)
 
     // 下一帧
     window.requestAnimationFrame(loop);
@@ -86,6 +116,21 @@ watch(() => {return rcard.value.heartLimit}, (n, o) => {
     rcard.value.heartLimit = Math.max(rcard.value.heart, rcard.value.heartLimit)
 })
 
+// 缺失文字
+const missing = computed(() => {
+    let text = rcard.value.name
+    if (rcard.value.isTranslate) {
+        text = translate(rcard.value.name)
+    }
+    let res = ''
+    for (let char of text) {
+        if (!(sets.jinmei.has(char) || refChars.value.zchs.indexOf(char) >= 0)) {
+            res = res + char
+        }
+    }
+    return res
+})
+
 // 初始化Canvas
 function initCanvas() {
     const canvas = document.getElementById('card-preview') as HTMLCanvasElement;
@@ -95,7 +140,7 @@ function initCanvas() {
         logicSize: logicSize,
         displaySize: styleSize
     })
-    dw.setCanvasSize(rcvs.value)
+    dw.setCanvasSize(rcvs.value, 2)
 }
 
 // 挂载时初始化canvas
@@ -114,13 +159,18 @@ onMounted(() => {
 
     <div id="editor" class="card">
         <div class="row-flex-center">
-            <div class="label x4">导入插画</div>
+            <div class="btn greenBtn" @click="exportCard()">保存卡牌</div>
         </div>
-        <div class="row-flex-center">
-            <input type="file" accept="image/jpeg, image/png" @change="changeIllastration($event)">
-        </div>
-
+        
         <hr class="cardHr">
+        <div class="row-flex-center">
+            <div class="btn wideBtn" @click="importIll()">导入插画</div>
+        </div>
+        
+        <div class="row-flex-center" style="display: none;">
+            <input id='import-ill' type="file" accept="image/jpeg, image/png" @change="changeIllastration($event)">
+        </div>
+        
         <div class="row-flex-center">
             <div class="x2 mona">X:</div>
             <input class="textInput" type="number" v-model="rcard.x">
@@ -172,9 +222,7 @@ onMounted(() => {
         <div class="row-flex-center">
             <div class="x4">武将称号</div>
             <input class="textInput" v-model="rcard.title">
-        </div>
-        <div class="row-flex-center">
-            <div class="tip">检测到缺字，建议使用拼字功能</div>
+            <div class="translated" v-show="rcard.isTranslate">{{translate(rcard.title)}}</div>
         </div>
         <div class="row-flex-center">
             <div class="x4">武将名</div>
@@ -182,7 +230,7 @@ onMounted(() => {
             <div class="translated" v-show="rcard.isTranslate">{{translate(rcard.name)}}</div>
         </div>
         <div class="row-flex-center">
-            <div class="tip">检测到缺字，建议使用拼字功能</div>
+            <div v-show="missing.length > 0" class="tip">检测到缺字({{missing}})，建议使用拼字功能</div>
         </div>
 
         <hr class="cardHr">
@@ -243,16 +291,16 @@ onMounted(() => {
     </div>
 </div>
 
-<div>{{rcard}}</div>
+<!-- <div>{{rcard}}</div> -->
 
 </template>
 
 <style scoped>
 
 @font-face {
-    font-family: "FangZhengZhunYuan";
-    src: url("/fonts/FangZhengZhuYuan.ttf") format('truetype');
-    font-display: block;
+    font-family: "FangZhengZhuYuan";
+    src: url("/fonts/FangZhengZhuYuan/ZhuYuan.woff") format('woff');
+    font-display: swap;
 }
 
 #maker {
@@ -329,6 +377,20 @@ onMounted(() => {
     background-color: dimgray;
     cursor: pointer;
     background-color: rgb(216, 216, 216);
+}
+
+.btn:active {
+    background-image: linear-gradient(to bottom right, #81fbb878, #28c76f78);
+}
+
+.greenBtn {
+    background-image: linear-gradient(to bottom right, #4ff79bc0, #009543d6);
+    padding: 4px 10px;
+}
+
+.wideBtn {
+    width: 100%;
+    text-align: center;
 }
 
 .hidden {
