@@ -310,7 +310,7 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
     // 绘制技能名
     function drawSkillNames() {
         const xo = -57       // 技能名x偏移
-        const yo = 11.5      // 技能名y偏移
+        const yo = 1.5      // 技能名y偏移
         const fontSize = 20  // 技能名字体大小
         const color = card.power === 'shen' ? "rgb(239, 227, 111)" : "rgb(0, 0, 0)"  // 技能名颜色
 
@@ -322,6 +322,8 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
             df.fontsTexts.fangzhengTexts = df.contrastAddFont(df.fontsTexts.fangzhengTexts, text, fontName, `/fonts/${fontName}/${fontName}`)
             for (let j = 0; j < Math.min(text.length, 2); j++) {
                 cvs.ctx.font = fontSize + "px FangZhengLiShuJianTi-" + text[j]
+                cvs.ctx.textAlign = 'left'
+                cvs.ctx.textBaseline = 'middle'
                 cvs.ctx.fillStyle = color
                 cvs.ctx.fillText(text[j], params.x1 + xo + j * fontSize, dy + yo)
             }
@@ -444,11 +446,11 @@ export function frawTitleName(cvs: Canvas, card: Card, bottomy: number) {
 // 绘制底部信息
 export function drawBottom(cvs: Canvas, card: Card) {
     const param = {
-        font: "9px FangZhengZhunYuan",
+        font: "9px FangZhengZhuYuan",
         style: card.power == 'shen' ? '#ffffff' : '#000000',
         x1: card.power == 'shen' ? 150 : 85,
         x2: card.power == 'shen' ? 370 : 350,
-        y1: 539
+        y1: 533
     }
 
     let msg = "";
@@ -459,7 +461,7 @@ export function drawBottom(cvs: Canvas, card: Card) {
     if(card.isIllustrator){
         msg += "illustration: " + card.illastrator
     }
-    cvs.ctx.textBaseline = 'bottom'
+    cvs.ctx.textBaseline = 'middle'
     cvs.ctx.textAlign = 'left'
     cvs.ctx.font = param.font
     cvs.ctx.fillStyle = param.style
@@ -479,7 +481,7 @@ export function drawVersion(cvs: Canvas, version: string) {
         x: 18,
         y: 549
     }
-    cvs.ctx.font = '9px FangZhengZhunYuan'
+    cvs.ctx.font = '9px FangZhengZhuYuan'
     cvs.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
     cvs.ctx.textBaseline = 'middle'
     cvs.ctx.textAlign = 'left'

@@ -168,7 +168,7 @@ onMounted(() => {
         </div>
         
         <div class="row-flex-center" style="display: none;">
-            <input id='import-ill' type="file" accept="image/jpeg, image/png" @change="changeIllastration($event)">
+            <input id='import-ill' type="file" accept="image/jpeg, image/png, image/webp, image/jpg" @change="changeIllastration($event)">
         </div>
         
         <div class="row-flex-center">
