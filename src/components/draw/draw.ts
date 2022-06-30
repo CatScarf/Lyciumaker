@@ -161,7 +161,7 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
         cvs.ctx.font = params.fontSize + "px FangZhengZhuYuan"
 
         // 绘制一行
-        function drawLine(isItalic: boolean, lastLine: boolean) {
+        function drawLine(isItalic: boolean, lastLine: boolean, drawRatio = 0) {
             const dx = params.x1 + xoff
             const dy = y + numline * params.yoff
             let font = params.fontSize + "px FangZhengZhuYuan"
@@ -169,41 +169,53 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
                 font = 'italic ' + font
             }
             // 确保宽度对齐
-            if (lastLine) {
-                cvs.ctx.fillText(line, dx, dy)
-            } else {
-                const size = new Coord(cvs.ctx.measureText(line).width, params.fontSize * 2)  // 加高，确保文字完整显示
-                const tempCvs = tempCanvas(size, size, 1.5)  // 超分辨绘制，确保字体锐利
-                tempCvs.ctx.font = font
-                tempCvs.ctx.fillText(line, 0, params.fontSize)
-                // 绘制粗体
-                if (line.length >= 3 && line[2] === '技') {
-                    let boldText = line.slice(0, 4)
-                    if (line.length >= 7 && line[6] === '技') {
-                        boldText = boldText + line.slice(4, 7)
-                    }
-                    const clearWidth = tempCvs.ctx.measureText(boldText).width
-                    tempCvs.ctx.clearRect(0, 0, clearWidth, size.y)
-
-                    tempCvs.ctx.font = 'bold ' + font
-                    tempCvs.ctx.fillText(boldText, 0, params.fontSize)
+            const w1 = cvs.ctx.measureText(line).width       // 实际宽度
+            const size = new Coord(w1, params.fontSize * 2)  // 加高，确保文字完整显示
+            const tempCvs = tempCanvas(size, size, 1.5)                                   // 超分辨绘制，确保字体锐利
+            tempCvs.ctx.font = font
+            tempCvs.ctx.fillText(line, 0, params.fontSize)
+            // 绘制粗体
+            if (line.length >= 3 && line[2] === '技') {
+                let boldText = line.slice(0, 4)
+                if (line.length >= 7 && line[6] === '技') {
+                    boldText = boldText + line.slice(4, 7)
                 }
-                cvs.ctx.drawImage(tempCvs.canvas, dx, dy - params.yoff, params.w - xoff, params.fontSize * 2)  // 加高，确保文字完整显示
+                const clearWidth = tempCvs.ctx.measureText(boldText).width
+                tempCvs.ctx.clearRect(0, 0, clearWidth, size.y)
+
+                tempCvs.ctx.font = 'bold ' + font
+                tempCvs.ctx.fillText(boldText, 0, params.fontSize)
             }
+            // 确定宽度
+            let w2 = params.w - xoff  // 绘制宽度
+            if (lastLine) {
+                w2 = w1
+                if (drawRatio) {
+                    w2 = w1 * drawRatio
+                }
+            }
+
+            drawRatio = w2 / w1
+
+            cvs.ctx.drawImage(tempCvs.canvas, dx, dy - params.yoff, w2, params.fontSize * 2)  // 加高，确保文字完整显示
+
+            return drawRatio
         }
 
-        var xoff = 0  // 首行缩进
+        var xoff = 0      // 首行缩进
+        let drawRatio = 0 // 绘制单行时缩放的比例
         for (let i = 0; i < text.length; i++) {
             xoff = (numline === 0) ? params.indent * params.fontSize : 0
             line = line + text[i]
             const textWidth = cvs.ctx.measureText(line).width
             if (textWidth >= params.w - xoff) {
+                // 确保标点符号不在第一位
                 if (i+1 < text.length && [',', '，', '.', '。', ';', '；', ':', '：'].indexOf(text[i+1]) >= 0) {
                     i = i + 1
                     line = line + text[i]
                 }
                 if (isDraw) {
-                    drawLine(skill.isItalic, false)
+                    drawRatio = drawLine(skill.isItalic, false, drawRatio)
                 }
                 numline++
                 line = ''
@@ -213,7 +225,7 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
         if (line != '') {
             height = height + params.yoff
             if (isDraw) {
-                drawLine(skill.isItalic, true)
+                drawRatio = drawLine(skill.isItalic, true, drawRatio)
             }
         }
         return height
@@ -256,7 +268,8 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
         const heightScale = 7  // 高度扩展
 
         // 四角坐标
-        const rect = new Rect(params.x1, params.y1, params.w, sh.height).scaleWidth(widthScale).scaleHeight(heightScale)
+        const h = params.y2 - params.y1
+        const rect = new Rect(params.x1, params.y1, params.w, h).scaleWidth(widthScale).scaleHeight(heightScale)
 
         // 绘制样式
         cvs.ctx.fillStyle = color
@@ -306,11 +319,10 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
     }
     drawSkillNameFrames()
 
-
     // 绘制技能名
     function drawSkillNames() {
         const xo = -57       // 技能名x偏移
-        const yo = 1.5      // 技能名y偏移
+        const yo = 1.5       // 技能名y偏移
         const fontSize = 20  // 技能名字体大小
         const color = card.power === 'shen' ? "rgb(239, 227, 111)" : "rgb(0, 0, 0)"  // 技能名颜色
 
@@ -318,7 +330,6 @@ export function drawSkill(cvs: Canvas, card: Card, miscellanous: Misellaneous) {
             const dy = sh.skillsy[i]
             let text = card.skills[i].name
             const fontName = 'FangZhengLiShuJianTi'
-            // console.log(i, text, df.fontsTexts.fangzhengTexts)
             df.fontsTexts.fangzhengTexts = df.contrastAddFont(df.fontsTexts.fangzhengTexts, text, fontName, `/fonts/${fontName}/${fontName}`)
             for (let j = 0; j < Math.min(text.length, 2); j++) {
                 cvs.ctx.font = fontSize + "px FangZhengLiShuJianTi-" + text[j]
@@ -474,7 +485,7 @@ export function drawBottom(cvs: Canvas, card: Card) {
     }
 }
 
-
+// 绘制版本信息
 export function drawVersion(cvs: Canvas, version: string) {
     const param = {
         text: 'Lycium在线制卡器' + version,
