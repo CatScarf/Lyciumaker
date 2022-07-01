@@ -403,11 +403,13 @@ export function frawTitleName(cvs: Canvas, card: Card, bottomy: number) {
         x1: card.power === 'shen' ? 335 : 59,
         y1: 110,
         y2: 0,
-        y3: bottomy,
+        y3: bottomy - 10,
         titleFontsizeMax: 24,
         nameFontsizeMax: 57
     }
     params.y2 = params.y1 + (bottomy - 110) * params.ratio
+
+    // cvs.ctx.fillRect(params.x1, params.y1, 100, params.y3 - params.y1)
 
     // 绘制武将称号
     function drawTitle() {
@@ -493,7 +495,7 @@ export function drawVersion(cvs: Canvas, version: string) {
         y: 549
     }
     cvs.ctx.font = '9px FangZhengZhuYuan'
-    cvs.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+    cvs.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'
     cvs.ctx.textBaseline = 'middle'
     cvs.ctx.textAlign = 'left'
 
