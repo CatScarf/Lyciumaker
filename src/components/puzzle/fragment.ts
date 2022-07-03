@@ -1,7 +1,7 @@
 import { ref, Ref } from "vue"
 import * as dw from '../draw/draw'
 import * as df from '../fonts/dynamicFont'
-import { Coord } from '../util/coord'
+import { Coord } from '../entity/Coord'
 
 // 大写汉字
 class UpperNumber {

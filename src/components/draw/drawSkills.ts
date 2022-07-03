@@ -117,13 +117,7 @@ function skillsHeight(cf: Config, cvs: Canvas, card: Card, y1: number, fontSize:
 // 绘制缺角矩形
 function drawCornerRect(cvs: Canvas, rect: Rect, corner: number, isFill = false) {
     // 确定坐标
-    const line = [
-        rect.c1.down(corner), rect.c1.down(corner).right(corner), rect.c1.right(corner),
-        rect.c2.left(corner), rect.c2.down(corner).left(corner), rect.c2.down(corner),
-        rect.c3.up(corner), rect.c3.up(corner).left(corner), rect.c3.left(corner),
-        rect.c4.right(corner), rect.c4.right(corner).up(corner), rect.c4.up(corner),
-        rect.c1.down(corner)
-    ]
+    const line = rect.getCornerOutline(corner)
 
     // 绘制
     cvs.ctx.beginPath()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import * as dw from '../draw/draw'
-import { Coord } from '../util/coord'
+import { Coord } from '../entity/Coord'
 import { onMounted, watch } from 'vue'
 
 let cvs: dw.Canvas

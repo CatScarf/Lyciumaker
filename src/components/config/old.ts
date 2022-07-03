@@ -14,7 +14,7 @@ export const oldConfig: Config = {
     },
     skText: {
         x1: 104,
-        y2: 507,
+        y2: 505,
         maxy1: 430,
         w: 235,
         maxHeight: 3,
@@ -35,17 +35,17 @@ export const oldConfig: Config = {
         margin: 3,
         lineWidth: 2,
         wScale: 20,
-        hScale: 7
+        hScale: 10
     },
     skFrame: {
         w: 68,
         h: 34,
         xoff: -68,
-        yoff: -16,
+        yoff: -19,
     },
     skName: {
         xoff: -57,
-        yoff: 1.5,
+        yoff: -2,
         fontSize: 20,
         textStyle: {
             align: 'left',

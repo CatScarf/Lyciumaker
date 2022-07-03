@@ -18,7 +18,7 @@ const page: Ref<Page> = ref(Page.Maker)
 const isSmallCharHover: Ref<boolean> = ref(false)
 const refHoverFgs: Ref<Fragments> = ref(new Fragments())
 
-const refVersion: Ref<string> = ref('2.1.4')
+const refVersion: Ref<string> = ref('2.2.1')
 
 window.onbeforeunload = (event: any) => {
   return "您确认要离开吗？所有内容将会丢失！"
@@ -50,7 +50,7 @@ window.onbeforeunload = (event: any) => {
 
 
   <div style="padding: 5px; background: #33cc66; font-size: 10px; text-align: center; color: white">
-    感谢大家的捐赠，现在服务器的经济状况大为缓解，您仍可以
+    感谢大家的捐赠，现在服务器的经济压力大幅缓解，您仍可以
     <a href="https://www.bilibili.com/video/BV19P4y1j7n6/" style="display: inline-block; color: white" target="_blank">
         在该视频下充电
     </a>

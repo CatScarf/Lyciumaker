@@ -4,7 +4,7 @@ import { onMounted, Ref, ref, watch } from 'vue';
 import { miscellaneous } from '../draw/miscellaneous';
 import * as dw from '../draw/draw'
 import { drawSkills } from '../draw/drawSkills'
-import { Coord } from '../util/coord';
+import { Coord } from '../entity/Coord';
 import { Card, Power } from './card'
 import { translate } from '../fonts/trainslate'
 import { computed } from '@vue/reactivity';

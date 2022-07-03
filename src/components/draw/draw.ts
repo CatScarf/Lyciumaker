@@ -5,12 +5,12 @@ import { sets } from '../fonts/sets'
 import * as df from '../fonts/dynamicFont'
 import { translate } from "../fonts/trainslate";
 
-import { Skill, Card } from "../maker/card";
+import { Card } from "../maker/card";
 import { Power } from "../maker/card";
 
 import { refChars } from '../puzzle/chars'
 import { Fragments } from "../puzzle/fragment";
-import { Coord, Rect } from "../util/coord";
+import { Coord } from "../entity/Coord";
 
 import { Config } from '../config/config'
 import { applyText } from './textstyle'
