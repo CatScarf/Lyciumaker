@@ -1,7 +1,7 @@
 import { LazyImage } from './lazyimage'
 
 // 杂项
-export class Misellaneous {
+export class Miscellaneous {
     img: LazyImage
     hearts: {[key: string]: number[]} = {}
 
@@ -55,8 +55,9 @@ export class Misellaneous {
         return this.hearts[name]
     }
 
-    getSkillbox(power: string): number[] {
-        return this.skillBox[power]
+    getSkillbox(power: string) {
+        const s = this.skillBox[power]
+        return {x: s[0], y: s[1], w: s[2], h: s[3]}
     }
 
     getImg() {
@@ -75,4 +76,4 @@ export class Misellaneous {
         }
     }
 }
-export const misellaneous = new Misellaneous('/png/miscellaneous.png')
+export const miscellaneous = new Miscellaneous('/png/miscellaneous.png')

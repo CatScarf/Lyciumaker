@@ -27,41 +27,41 @@ window.onbeforeunload = (event: any) => {
 </script>
 
 <template>
+  <div id="nav-bar" class="row-flex-center">
+    <div class="title">
+      <div>Lycium制卡器{{refVersion}}</div>
+    </div>
+    <div class="nav-btn" @click="page = Page.Maker">
+      <div>制卡</div>
+    </div>
+    <div class="nav-btn" @click="page = Page.Puzzle">
+      <div>拼字</div>
+    </div>
+    <div class="nav-btn" onclick="window.open(href='https://www.bilibili.com/video/BV19P4y1j7n6/')">
+      <div>反馈</div>
+    </div>
+    <div class="nav-btn" onclick="window.open(href='/income/收支与捐赠.html')">
+      <div>收支</div>
+    </div>
+    <div class="nav-btn" onclick="window.open('https://github.com/CatScarf/Lyciumaker')">
+      <div>Github</div>
+    </div>
+  </div>
+
+
+  <div style="padding: 5px; background: #33cc66; font-size: 10px; text-align: center; color: white">
+    感谢大家的捐赠，现在服务器的经济状况大为缓解，您仍可以
+    <a href="https://www.bilibili.com/video/BV19P4y1j7n6/" style="display: inline-block; color: white" target="_blank">
+        在该视频下充电
+    </a>
+    以捐助本网站。此视频下的捐助将全部用于本站服务器费用。具体收支请点击导航栏“收支”查看
+  </div>
+
+  <div id="chars" class="row-flex-center">
+    <div class="char card" v-for="char in refChars.jsons" @click="refFragments.fromjson(char)" @mouseenter="isSmallCharHover = true; refHoverFgs = new Fragments().fromjson(char)" @mouseleave="isSmallCharHover = false">{{jsonInfo(char)}}</div>
+  </div>
+
   <div style="width: fit-content;">
-    <div id="nav-bar">
-      <div class="title">
-        <div>Lycium制卡器{{refVersion}}</div>
-      </div>
-      <div class="nav-btn" @click="page = Page.Maker">
-        <div>制卡</div>
-      </div>
-      <div class="nav-btn" @click="page = Page.Puzzle">
-        <div>拼字</div>
-      </div>
-      <div class="nav-btn" onclick="window.open(href='https://www.bilibili.com/video/BV19P4y1j7n6/')">
-        <div>反馈</div>
-      </div>
-      <div class="nav-btn" style="visibility: hidden;">
-        <div>捐赠</div>
-      </div>
-      <div class="nav-btn" onclick="window.open('https://github.com/CatScarf/Lyciumaker')">
-        <div>Github</div>
-      </div>
-    </div>
-
-    <div style="padding: 5px; background: #a10000; font-size: 10px; text-align: center; color: white">
-      因本人无力承担服务器费用，本站将于2022年8月1日关闭。届时您仍可前往Github上下载源码运行。<br>
-      您也可以选择
-      <a href="https://www.bilibili.com/video/BV19P4y1j7n6/" style="display: inline-block; color: white" target="_blank">
-          在该视频下充电
-      </a>
-      以捐助本网站，此视频的充电收入将会全部用于本站的服务器费用（目前每月50元左右）。
-    </div>
-
-    <div id="chars" class="row-flex-center">
-        <div class="char card" v-for="char in refChars.jsons" @click="refFragments.fromjson(char)" @mouseenter="isSmallCharHover = true; refHoverFgs = new Fragments().fromjson(char)" @mouseleave="isSmallCharHover = false">{{jsonInfo(char)}}</div>
-    </div>
-
     <div v-show="page === Page.Maker">
       <Maker :version="refVersion"></Maker>
     </div>
@@ -87,18 +87,16 @@ window.onbeforeunload = (event: any) => {
 
 #nav-bar {
   background-color: rgb(44, 49, 50);
-  height: 44px;
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   width: 100%;
   font-family: "PingFang SC", SimHei, Monaco, Consolas, monospace;
-
-  padding: 0 0px;
 }
 
 .nav-btn {
   color: rgb(221, 221, 221);
-  padding: 0px 10px;
+  padding: 10px 10px;
   height: 100%;
   display: flex;
   place-items: center;
@@ -110,8 +108,6 @@ window.onbeforeunload = (event: any) => {
   /* color: rgb(254, 110, 110); */
   padding: 0px 10px;
   height: 100%;
-  display: flex;
-  place-items: center;
   user-select: none;
 
   font-size: 15px;
@@ -165,7 +161,7 @@ window.onbeforeunload = (event: any) => {
 }
 
 .relative-center {
-  position: absolute;
+  position: relative;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);

@@ -63,6 +63,7 @@ export const oldConfig: Config = {
         shenx1: 335,
         y1: 110,
         y3off: -10,
+        ratio: 0.4,
         maxTitle: 24,
         maxName: 57
     },
@@ -82,6 +83,16 @@ export const oldConfig: Config = {
             align: 'left',
             baseline: 'middle',
             fillStyle: 'ffffff'
+        }
+    },
+    version: {
+        font: '9px FangZhengZhuYuan',
+        x: 18,
+        y: 549,
+        textStyle : {
+            align: 'left',
+            baseline: 'middle',
+            fillStyle: 'rgba(255, 255, 255, 0.2)'
         }
     }
 }

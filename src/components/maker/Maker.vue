@@ -1,14 +1,18 @@
 <script setup lang="ts">
 
 import { onMounted, Ref, ref, watch } from 'vue';
-import { misellaneous } from '../draw/misellaneous';
+import { miscellaneous } from '../draw/miscellaneous';
 import * as dw from '../draw/draw'
+import { drawSkills } from '../draw/drawSkills'
 import { Coord } from '../util/coord';
 import { Card, Power } from './card'
 import { translate } from '../fonts/trainslate'
 import { computed } from '@vue/reactivity';
 import { refChars } from '../puzzle/chars';
 import { sets } from '../fonts/sets';
+
+import { Config } from '../config/config'
+import { oldConfig } from '../config/old'
 
 const props = defineProps(['version'])
 
@@ -18,6 +22,8 @@ const styleSize = new Coord().like(logicSize)
 
 var rcvs: Ref<dw.Canvas>  // Canvas相关参数
 const rcard: Ref<Card> = ref(new Card())  // 卡牌相关参数
+
+const config: Config = oldConfig
 
 // 更改插画
 function changeIllastration(event: any) {
@@ -71,19 +77,19 @@ function loop() {
     dw.drawOutFrame(rcvs.value, rcard.value, dw.outFrame)
 
     // 绘制体力
-    dw.drawHeartLimit(rcvs.value, rcard.value, misellaneous)
+    dw.drawHeartLimit(config, rcvs.value, rcard.value, miscellaneous)
 
     // 绘制技能
-    const bottomy = dw.drawSkill(rcvs.value, rcard.value, misellaneous).topy
+    const bottomy = drawSkills(config, rcvs.value, rcard.value, miscellaneous).topy
 
     // 绘制称号与武将名
-    dw.frawTitleName(rcvs.value, rcard.value, bottomy)
+    dw.drawTitleName(config, rcvs.value, rcard.value, miscellaneous, bottomy)
 
     // 绘制底部信息
-    dw.drawBottom(rcvs.value, rcard.value)
+    dw.drawBottom(config, rcvs.value, rcard.value)
 
     // 绘制版本信息
-    dw.drawVersion(rcvs.value, props.version)
+    dw.drawVersion(config, rcvs.value, props.version)
 
     // 下一帧
     window.requestAnimationFrame(loop);

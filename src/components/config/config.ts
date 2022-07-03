@@ -59,6 +59,7 @@ interface TitleName {
     shenx1: number,
     y1: number,
     y3off: number,     // 武将名底部与技能框顶部的间距
+    ratio: number,     // 武将称号长度占比
     maxTitle: number,  // 称号字体最大值
     maxName: number    // 武将名字体最大值
 }
@@ -75,6 +76,14 @@ interface Bottom {
     shenTextStyle: TextStyle
 }
 
+// 版本信息
+interface Version {
+    font: string,
+    x: number,
+    y: number,
+    textStyle: TextStyle
+}
+
 // 配置
 export interface Config {
     game: string
@@ -86,4 +95,5 @@ export interface Config {
     skName: SkName
     titleName: TitleName
     bottom: Bottom
+    version: Version
 }
