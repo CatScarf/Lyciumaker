@@ -1,4 +1,4 @@
-import { Canvas } from "../draw/draw"
+import { Canvas } from "../entity/Canvas"
 
 // 技能
 export class Skill {

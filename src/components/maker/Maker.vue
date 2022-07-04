@@ -4,6 +4,7 @@ import { onMounted, Ref, ref, watch } from 'vue';
 import { miscellaneous } from '../draw/miscellaneous';
 import * as dw from '../draw/draw'
 import { drawSkills } from '../draw/drawSkills'
+import { IllDrager } from '../draw/dragill'
 import { Coord } from '../entity/Coord';
 import { Card, Power } from './card'
 import { translate } from '../fonts/trainslate'
@@ -14,16 +15,36 @@ import { sets } from '../fonts/sets';
 import { Config } from '../config/config'
 import { oldConfig } from '../config/old'
 
+import { Mouse } from '../entity/Mouse';
+import { Canvas } from '../entity/Canvas';
+
 const props = defineProps(['version'])
 
 const logicWidth = 400
-const logicSize = new Coord(logicWidth, logicWidth * (88 / 63))
+const ratio = 88 / 63
+const logicSize = new Coord(logicWidth, logicWidth * ratio)
 const styleSize = new Coord().like(logicSize)
 
-var rcvs: Ref<dw.Canvas>  // Canvas相关参数
+var rcvs: Ref<Canvas>  // Canvas相关参数
 const rcard: Ref<Card> = ref(new Card())  // 卡牌相关参数
 
 const config: Config = oldConfig
+
+// 鼠标相关参数
+const rmouse: Ref<Mouse> = ref(new Mouse())
+var illDrager: IllDrager
+
+// 动态改变卡牌宽度
+window.onresize = setCnavseSize
+
+// 根据窗口大小改变卡牌大小
+function setCnavseSize() {
+    const width = Math.min(window.innerWidth - 10, rcvs.value.logicSize.x)
+    if (width != rcvs.value.displaySize.x) {
+        rcvs.value.displaySize = new Coord(width, width * ratio)
+        dw.setCanvasSize(rcvs.value, 2)
+    }
+}
 
 // 更改插画
 function changeIllastration(event: any) {
@@ -68,8 +89,6 @@ function loop() {
     // 清空画布
     dw.clearCanvas(rcvs.value)
 
-    // 拖拽插画
-
     // 绘制插画
     dw.drawIllatration(rcvs.value, rcard.value)
 
@@ -90,6 +109,9 @@ function loop() {
 
     // 绘制版本信息
     dw.drawVersion(config, rcvs.value, props.version)
+
+    // 拖拽插画
+    illDrager.drag()
 
     // 下一帧
     window.requestAnimationFrame(loop);
@@ -146,12 +168,14 @@ function initCanvas() {
         logicSize: logicSize,
         displaySize: styleSize
     })
+    setCnavseSize()
     dw.setCanvasSize(rcvs.value, 2)
 }
 
 // 挂载时初始化canvas
 onMounted(() => {
     initCanvas()
+    illDrager = new IllDrager(rcvs.value, rcard.value, rmouse.value)
     window.requestAnimationFrame(loop);
     rcard.value.importIllastration('/png/刘备-六星耀帝.png', rcvs.value);
 })
@@ -161,7 +185,8 @@ onMounted(() => {
 <template>
 
 <div id="maker" class="row-flex">
-    <canvas id="card-preview"></canvas>
+    <canvas id="card-preview" v-on:mousemove="rmouse.clientX = $event.clientX; rmouse.clientY = $event.clientY"
+                v-on:mousedown="rmouse.isDown = true" v-on:mouseup="rmouse.isDown = false"></canvas>
 
     <div id="editor" class="card">
         <div class="row-flex-center">

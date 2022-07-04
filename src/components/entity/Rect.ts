@@ -61,4 +61,9 @@ export class Rect {
         return new Rect(x, y, w, h)
     }
 
+    // 移动
+    move(x: number, y: number) {
+        return new Rect(this.x + x, this.y + y, this.w, this.h)
+    }
+
 }

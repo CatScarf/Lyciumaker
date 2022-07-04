@@ -14,6 +14,7 @@ import { Coord } from "../entity/Coord";
 
 import { Config } from '../config/config'
 import { applyText } from './textstyle'
+import { Canvas } from "../entity/Canvas";
 
 // 外框
 class OutFrame {
@@ -48,13 +49,7 @@ class OutFrame {
 export const outFrame = new OutFrame()
 
 
-// 保存画布相关参数
-export type Canvas = {
-    canvas: HTMLCanvasElement      // 画布
-    ctx: CanvasRenderingContext2D  // 画布上下文
-    logicSize: Coord               // 画布逻辑大小
-    displaySize: Coord             // 画布显示大小
-}
+
 
 // 临时Canvas 
 export function tempCanvas(logicSize: Coord, displaySize: Coord, superdpr: number = 1) {

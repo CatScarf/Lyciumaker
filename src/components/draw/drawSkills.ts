@@ -3,10 +3,11 @@ import { Card, Skill } from "../maker/card"
 import { Coord } from '../entity/Coord'
 import { Rect } from '../entity/Rect'
 import { transColor } from "../util/transcolor"
-import { Canvas, tempCanvas } from "./draw"
+import { tempCanvas } from "./draw"
 import { Miscellaneous } from "./miscellaneous"
 import { applyText } from "./textstyle"
 import * as df from "../fonts/dynamicFont"
+import { Canvas } from "../entity/Canvas"
 
 // 绘制一行技能
 function drawLine(cf: Config, cvs: Canvas, line: string, fontSize: number, isItalic: boolean, lastLine: boolean, drawRatio = 0, y: number, xoff: number) {
