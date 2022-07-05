@@ -8,7 +8,7 @@
 
 ```bash
 git clone https://github.com/CatScarf/Lyciumaker.git
-cp Lyciumaker
+cd Lyciumaker
 npm install
 npm run dev
 ```
