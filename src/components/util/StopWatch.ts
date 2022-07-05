@@ -58,4 +58,10 @@ export class StopWatch {
     print(isAvgOnly: boolean = true) {
         console.log(this.toString(isAvgOnly))
     }
+
+    // 获得平均时间
+    getAvgTime() {
+        return this.avgTime
+    }
+
 }

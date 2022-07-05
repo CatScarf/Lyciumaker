@@ -86,14 +86,32 @@ function importIll() {
     file?.click()
 }
 
+// 修改渲染间隔
+function changeRenderInterval(intv: number, time: number) {
+    const minTime = 30
+    const maxTime = 120
+    const stride = 10
+    const expected = 1
+    const tolerance = 0.5
+    if (time <= expected * (1 - tolerance)) {
+        intv -= stride
+        intv = Math.max(intv, minTime)
+    } else if (time >= expected * (1 + tolerance)) {
+        intv += stride
+        intv = Math.min(intv, maxTime)
+    }
+    return intv
+}
+
 // 动画循环
 const rstopWatch = ref(new StopWatch())  // 性能计时器
 let stopWatch = rstopWatch.value
 var loopcnt = 0 // 渲染循环的次数
+const renderIntv = ref(30)  // 动态渲染间隔
 function loop() {
     stopWatch.restart()
     // 仅当需要绘制的内容变化时重新渲染
-    if (isCardChanged || loopcnt % 60 == 0 || illDrager.isDragging) {
+    if (isCardChanged || loopcnt % renderIntv.value == 0 || illDrager.isDragging) {
         // 清空画布
         dw.clearCanvas(rcvs.value)
         // 绘制插画
@@ -121,9 +139,11 @@ function loop() {
     // 拖拽插画
     stopWatch.lap()
     illDrager.drag()
-
     stopWatch.lap()
     stopWatch.toString()
+
+    // 修改渲染间隔
+    renderIntv.value = changeRenderInterval(renderIntv.value, stopWatch.getAvgTime())
 
     // 下一帧
     loopcnt += 1
@@ -206,7 +226,7 @@ onMounted(() => {
         <div>
             <canvas id="card-preview" v-on:mousemove="rmouse.clientX = $event.clientX; rmouse.clientY = $event.clientY"
             v-on:mousedown="rmouse.isDown = true" v-on:mouseup="rmouse.isDown = false"></canvas>
-            <div style="font-size:12px; padding-left:10px; padding-bottom:5px; color:lightslategray; line-height: 100%; font-family:monospace, 'Courier New', Courier;">Render:{{stopWatch.str}}</div>
+            <div style="font-size:12px; padding-left:10px; padding-bottom:5px; color:lightslategray; line-height: 100%; font-family:monospace, 'Courier New', Courier;">Render:{{renderIntv}}-{{stopWatch.str}}</div>
         </div>
         
 
