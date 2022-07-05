@@ -198,7 +198,8 @@ function drawName(cf: Config, cvs: Canvas, card: Card, y2: number, y3: number) {
     const x1 = card.power === 'shen' ? cf.titleName.shenx1 : cf.titleName.x1
     let yoff = (y3 - y2) / card.name.length
     let ytop = yoff / 2
-    const fontSize = Math.min(Math.ceil(yoff), cf.titleName.maxName)
+    const maxFontSize = card.name.length <= 2 ? cf.titleName.maxName2 : cf.titleName.maxName3
+    const fontSize = Math.min(Math.ceil(yoff), maxFontSize)
     if (fontSize < yoff) {
         yoff = fontSize
         // ytop = (y3 - y2 - yoff * (card.name.length - 1)) / 2

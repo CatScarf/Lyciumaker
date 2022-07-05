@@ -61,7 +61,8 @@ interface TitleName {
     y3off: number,     // 武将名底部与技能框顶部的间距
     ratio: number,     // 武将称号长度占比
     maxTitle: number,  // 称号字体最大值
-    maxName: number    // 武将名字体最大值
+    maxName2: number   // 武将名字体最大值(2字以内)
+    maxName3: number   // 武将名字体最大值(3字以上)
 }
 
 // 底部信息

@@ -3,13 +3,14 @@
 import * as dw from '../draw/draw'
 import { Coord } from '../entity/Coord'
 import { onMounted, watch } from 'vue'
+import { Canvas } from '../entity/Canvas';
 
-let cvs: dw.Canvas
+let cvs: Canvas
 let width: number
 
 const props = defineProps<{
     width: string
-    subcvs: dw.Canvas
+    subcvs: Canvas
 }>()
 
 function loop() {

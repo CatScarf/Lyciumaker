@@ -65,7 +65,8 @@ export const oldConfig: Config = {
         y3off: -10,
         ratio: 0.4,
         maxTitle: 24,
-        maxName: 57
+        maxName2: 57,
+        maxName3: 45,
     },
     bottom: {
         font: '9px FangZhengZhuYuan',

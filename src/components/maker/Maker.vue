@@ -18,6 +18,8 @@ import { oldConfig } from '../config/old'
 import { Mouse } from '../entity/Mouse';
 import { Canvas } from '../entity/Canvas';
 
+import { StopWatch } from '../util/StopWatch'
+
 const props = defineProps(['version'])
 
 const logicWidth = 400
@@ -25,17 +27,17 @@ const ratio = 88 / 63
 const logicSize = new Coord(logicWidth, logicWidth * ratio)
 const styleSize = new Coord().like(logicSize)
 
-var rcvs: Ref<Canvas>  // Canvas相关参数
+var rcvs: Ref<Canvas>                     // Canvas相关参数
 const rcard: Ref<Card> = ref(new Card())  // 卡牌相关参数
-
-const config: Config = oldConfig
+let isCardChanged: boolean = false      // 卡牌相关参数是否改变
+const config: Config = oldConfig          // 配置文件
 
 // 鼠标相关参数
 const rmouse: Ref<Mouse> = ref(new Mouse())
 var illDrager: IllDrager
 
-// 动态改变卡牌宽度
-window.onresize = setCnavseSize
+// // 动态改变卡牌宽度
+// window.onresize = setCnavseSize
 
 // 根据窗口大小改变卡牌大小
 function setCnavseSize() {
@@ -52,10 +54,10 @@ function changeIllastration(event: any) {
     rcard.value.importIllastration(url, rcvs.value)
 }
 
-// 缩放
-watch(() => {return rcard.value.scale}, (n, o) => {
+// 缩放插画
+watch(() => { return rcard.value.scale }, (n, o) => {
     rcard.value.scale = Math.max(rcard.value.scale, 1)
-    const ratio = typeof(n / 100) === 'number' ? n / 100 : 1
+    const ratio = typeof (n / 100) === 'number' ? n / 100 : 1
     const f2 = (e: number) => Number(e.toFixed(2))
     rcard.value.w = f2(rcard.value.illastration.width * ratio)
     rcard.value.h = f2(rcard.value.illastration.height * ratio)
@@ -85,35 +87,46 @@ function importIll() {
 }
 
 // 动画循环
+const rstopWatch = ref(new StopWatch())  // 性能计时器
+let stopWatch = rstopWatch.value
+var loopcnt = 0 // 渲染循环的次数
 function loop() {
-    // 清空画布
-    dw.clearCanvas(rcvs.value)
-
-    // 绘制插画
-    dw.drawIllatration(rcvs.value, rcard.value)
-
-    // 绘制外框
-    dw.drawOutFrame(rcvs.value, rcard.value, dw.outFrame)
-
-    // 绘制体力
-    dw.drawHeartLimit(config, rcvs.value, rcard.value, miscellaneous)
-
-    // 绘制技能
-    const bottomy = drawSkills(config, rcvs.value, rcard.value, miscellaneous).topy
-
-    // 绘制称号与武将名
-    dw.drawTitleName(config, rcvs.value, rcard.value, miscellaneous, bottomy)
-
-    // 绘制底部信息
-    dw.drawBottom(config, rcvs.value, rcard.value)
-
-    // 绘制版本信息
-    dw.drawVersion(config, rcvs.value, props.version)
-
+    stopWatch.restart()
+    // 仅当需要绘制的内容变化时重新渲染
+    if (isCardChanged || loopcnt % 60 == 0 || illDrager.isDragging) {
+        // 清空画布
+        dw.clearCanvas(rcvs.value)
+        // 绘制插画
+        dw.drawIllatration(rcvs.value, rcard.value)
+        // 绘制外框
+        dw.drawOutFrame(rcvs.value, rcard.value, dw.outFrame)
+        // 绘制体力
+        dw.drawHeartLimit(config, rcvs.value, rcard.value, miscellaneous)
+        // 绘制技能
+        stopWatch.lap()
+        const bottomy = drawSkills(config, rcvs.value, rcard.value, miscellaneous).topy
+        // 绘制称号与武将名
+        stopWatch.lap()
+        dw.drawTitleName(config, rcvs.value, rcard.value, miscellaneous, bottomy)
+        // 绘制底部信息
+        stopWatch.lap()
+        dw.drawBottom(config, rcvs.value, rcard.value)
+        // 绘制版本信息
+        stopWatch.lap()
+        dw.drawVersion(config, rcvs.value, props.version)
+        // 重置绘制标记
+        isCardChanged = false
+    }
+    
     // 拖拽插画
+    stopWatch.lap()
     illDrager.drag()
 
+    stopWatch.lap()
+    stopWatch.toString()
+
     // 下一帧
+    loopcnt += 1
     window.requestAnimationFrame(loop);
 }
 
@@ -134,15 +147,20 @@ function changeNumSkill() {
 }
 
 // 确保体力值大于等于0
-watch(() => {return rcard.value.heart}, (n, o) => {
+watch(() => { return rcard.value.heart }, (n, o) => {
     rcard.value.heart = Math.max(0, rcard.value.heart)
     rcard.value.heartLimit = Math.max(rcard.value.heart, rcard.value.heartLimit)
 })
 
 // 确保体力上限大于体力值
-watch(() => {return rcard.value.heartLimit}, (n, o) => {
+watch(() => { return rcard.value.heartLimit }, (n, o) => {
     rcard.value.heartLimit = Math.max(rcard.value.heart, rcard.value.heartLimit)
 })
+
+// 监听卡牌参数改变
+watch(() => { return rcard.value }, (n, o) => {
+    isCardChanged = true
+}, { deep: true })
 
 // 缺失文字
 const missing = computed(() => {
@@ -184,145 +202,150 @@ onMounted(() => {
 
 <template>
 
-<div id="maker" class="row-flex">
-    <canvas id="card-preview" v-on:mousemove="rmouse.clientX = $event.clientX; rmouse.clientY = $event.clientY"
-                v-on:mousedown="rmouse.isDown = true" v-on:mouseup="rmouse.isDown = false"></canvas>
-
-    <div id="editor" class="card">
-        <div class="row-flex-center">
-            <div class="btn greenBtn" @click="exportCard()">保存卡牌</div>
+    <div id="maker" class="row-flex">
+        <div>
+            <canvas id="card-preview" v-on:mousemove="rmouse.clientX = $event.clientX; rmouse.clientY = $event.clientY"
+            v-on:mousedown="rmouse.isDown = true" v-on:mouseup="rmouse.isDown = false"></canvas>
+            <div style="font-size:12px; padding-left:10px; padding-bottom:5px; color:lightslategray; line-height: 100%; font-family:monospace, 'Courier New', Courier;">Render:{{stopWatch.str}}</div>
         </div>
         
-        <hr class="cardHr">
-        <div class="row-flex-center">
-            <div class="btn wideBtn" @click="importIll()">导入插画</div>
-        </div>
-        
-        <div class="row-flex-center" style="display: none;">
-            <input id='import-ill' type="file" accept="image/jpeg, image/png, image/webp, image/jpg" @change="changeIllastration($event)">
-        </div>
-        
-        <div class="row-flex-center">
-            <div class="x2 mona">X:</div>
-            <input class="textInput" type="number" v-model="rcard.x">
-            <div class="x2 mona">Y:</div>
-            <input class="textInput" type="number" v-model="rcard.y">
-        </div>
-        <div class="row-flex-center">
-            <div class="x2 mona">W:</div>
-            <input class="textInput" type="number" v-model="rcard.w" disabled="true">
-            <div class="x2 mona">H:</div>
-            <input class="textInput" type="number" v-model="rcard.h" disabled="true">
-        </div>
-        <div class="row-flex-center">
-            <div class="x2">缩放</div>
-            <input class="textInput" type="number" v-model="rcard.scale">
-            <div class="btn" @click="rcard.scale = Number((rcard.scale * 0.97833).toFixed(2))">-</div>
-            <div class="btn" @click="rcard.scale = Number((rcard.scale * 1.02215).toFixed(2))">+</div>
-            <div class="btn" @click="rcard.scale = 100">重置</div>
-        </div>
 
-        <hr class="cardHr">
-        <div class="row-flex-center">
-            <div class="row-flex-center x4">
-                <input type="checkbox" v-model="rcard.isProducer">
-                <div>版权</div>
-            </div>
-            <input class="textInput" :class="{hidden: !rcard.isProducer}" v-model="rcard.producer">
-        </div>
-        <div class="row-flex-center">
-            <div class="row-flex-center x4">
-                <input type="checkbox" v-model="rcard.isIllustrator">
-                <div>画师</div>
-            </div>
-            <input class="textInput" :class="{hidden: !rcard.isIllustrator}" v-model="rcard.illastrator">
-        </div>
-        <div class="row-flex-center">
-            <div class="row-flex-center x4">
-                <input type="checkbox" v-model="rcard.isCardNum">
-                <div>编号</div>
-            </div>
-            <input class="textInput" :class="{hidden: !rcard.isCardNum}" v-model="rcard.cardNum">
-        </div>
-
-        <hr class="cardHr">
-        <div class="row-flex-center">
-            <input type="checkbox" v-model="rcard.isTranslate">
-            <div>自动简繁转换</div>
-        </div>
-        <div class="row-flex-center">
-            <div class="x4">武将称号</div>
-            <input class="textInput" v-model="rcard.title">
-            <div class="translated" v-show="rcard.isTranslate">{{translate(rcard.title)}}</div>
-        </div>
-        <div class="row-flex-center">
-            <div class="x4">武将名</div>
-            <input class="textInput" v-model="rcard.name">
-            <div class="translated" v-show="rcard.isTranslate">{{translate(rcard.name)}}</div>
-        </div>
-        <div class="row-flex-center">
-            <div v-show="missing.length > 0" class="tip">检测到缺字({{missing}})，建议使用拼字功能</div>
-        </div>
-
-        <hr class="cardHr">
-        <div class="row-flex-center">
-            <div class="x4">势力</div>
-            <select v-model="rcard.power">
-                <option v-for="(val, name, idx) in Power" :value="val">{{name}}</option>
-            </select>
-            <input type="checkbox" v-model="rcard.isLord">
-            <div>主公</div>
-        </div>
-        <div class="row-flex-center">
-            <div class="x4">体力值</div>
-            <input class="textInput" type="number" v-model="rcard.heart">
-            <div class="btn" @click="rcard.heart--">-</div>
-            <div class="btn" @click="rcard.heart++">+</div>
-        </div>
-        <div class="row-flex-center">
-            <input type="checkbox" v-model="rcard.isHreatLimit">
-            <div>体力值与体力上限不等</div>
-        </div>
-        <div v-show="rcard.isHreatLimit" class="row-flex-center">
-            <div class="x4">体力上限</div>
-            <input class="textInput" type="number" v-model="rcard.heartLimit">
-            <div class="btn" @click="rcard.heartLimit--">-</div>
-            <div class="btn" @click="rcard.heartLimit++">+</div>
-        </div>
-        
-        <hr class="cardHr">
-        <div class="row-flex-center">
-            <div class="x4">技能数量</div>
-            <input class="textInput" type="number" v-model="rcard.numSkill" @change="changeNumSkill">
-            <div class="btn" @click="rcard.numSkill--; changeNumSkill()">-</div>
-            <div class="btn" @click="rcard.numSkill++; changeNumSkill()">+</div>
-        </div>
-    </div>
-
-    <div id="skills" class="row-flex">
-        <div class="card" v-for="(skill, i) in rcard.skills">
+        <div id="editor" class="card">
             <div class="row-flex-center">
-                <div class="x4">技能{{i+1}}</div>
-                <input type="checkbox" v-model="skill.isItalic">
-                <div>斜体</div>
-            </div>
-            <div class="row-flex-center">
-                <div class="x4">技能名</div>
-                <input class="textInput" v-model="skill.name">
+                <div class="btn greenBtn" @click="exportCard()">保存卡牌</div>
             </div>
 
             <hr class="cardHr">
             <div class="row-flex-center">
-                <div class="x4">技能描述</div>
+                <div class="btn wideBtn" @click="importIll()">导入插画</div>
+            </div>
+
+            <div class="row-flex-center" style="display: none;">
+                <input id='import-ill' type="file" accept="image/jpeg, image/png, image/webp, image/jpg"
+                    @change="changeIllastration($event)">
+            </div>
+
+            <div class="row-flex-center">
+                <div class="x2 mona">X:</div>
+                <input class="textInput" type="number" v-model="rcard.x">
+                <div class="x2 mona">Y:</div>
+                <input class="textInput" type="number" v-model="rcard.y">
             </div>
             <div class="row-flex-center">
-                <textarea class="skill-text" v-model="skill.text"></textarea>
+                <div class="x2 mona">W:</div>
+                <input class="textInput" type="number" v-model="rcard.w" disabled="true">
+                <div class="x2 mona">H:</div>
+                <input class="textInput" type="number" v-model="rcard.h" disabled="true">
+            </div>
+            <div class="row-flex-center">
+                <div class="x2">缩放</div>
+                <input class="textInput" type="number" v-model="rcard.scale">
+                <div class="btn" @click="rcard.scale = Number((rcard.scale * 0.97833).toFixed(2))">-</div>
+                <div class="btn" @click="rcard.scale = Number((rcard.scale * 1.02215).toFixed(2))">+</div>
+                <div class="btn" @click="rcard.scale = 100">重置</div>
+            </div>
+
+            <hr class="cardHr">
+            <div class="row-flex-center">
+                <div class="row-flex-center x4">
+                    <input type="checkbox" v-model="rcard.isProducer">
+                    <div>版权</div>
+                </div>
+                <input class="textInput" :class="{ hidden: !rcard.isProducer }" v-model="rcard.producer">
+            </div>
+            <div class="row-flex-center">
+                <div class="row-flex-center x4">
+                    <input type="checkbox" v-model="rcard.isIllustrator">
+                    <div>画师</div>
+                </div>
+                <input class="textInput" :class="{ hidden: !rcard.isIllustrator }" v-model="rcard.illastrator">
+            </div>
+            <div class="row-flex-center">
+                <div class="row-flex-center x4">
+                    <input type="checkbox" v-model="rcard.isCardNum">
+                    <div>编号</div>
+                </div>
+                <input class="textInput" :class="{ hidden: !rcard.isCardNum }" v-model="rcard.cardNum">
+            </div>
+
+            <hr class="cardHr">
+            <div class="row-flex-center">
+                <input type="checkbox" v-model="rcard.isTranslate">
+                <div>自动简繁转换</div>
+            </div>
+            <div class="row-flex-center">
+                <div class="x4">武将称号</div>
+                <input class="textInput" v-model="rcard.title">
+                <div class="translated" v-show="rcard.isTranslate">{{ translate(rcard.title) }}</div>
+            </div>
+            <div class="row-flex-center">
+                <div class="x4">武将名</div>
+                <input class="textInput" v-model="rcard.name">
+                <div class="translated" v-show="rcard.isTranslate">{{ translate(rcard.name) }}</div>
+            </div>
+            <div class="row-flex-center">
+                <div v-show="missing.length > 0" class="tip">检测到缺字({{ missing }})，建议使用拼字功能</div>
+            </div>
+
+            <hr class="cardHr">
+            <div class="row-flex-center">
+                <div class="x4">势力</div>
+                <select v-model="rcard.power">
+                    <option v-for="(val, name, idx) in Power" :value="val">{{ name }}</option>
+                </select>
+                <input type="checkbox" v-model="rcard.isLord">
+                <div>主公</div>
+            </div>
+            <div class="row-flex-center">
+                <div class="x4">体力值</div>
+                <input class="textInput" type="number" v-model="rcard.heart">
+                <div class="btn" @click="rcard.heart--">-</div>
+                <div class="btn" @click="rcard.heart++">+</div>
+            </div>
+            <div class="row-flex-center">
+                <input type="checkbox" v-model="rcard.isHreatLimit">
+                <div>体力值与体力上限不等</div>
+            </div>
+            <div v-show="rcard.isHreatLimit" class="row-flex-center">
+                <div class="x4">体力上限</div>
+                <input class="textInput" type="number" v-model="rcard.heartLimit">
+                <div class="btn" @click="rcard.heartLimit--">-</div>
+                <div class="btn" @click="rcard.heartLimit++">+</div>
+            </div>
+
+            <hr class="cardHr">
+            <div class="row-flex-center">
+                <div class="x4">技能数量</div>
+                <input class="textInput" type="number" v-model="rcard.numSkill" @change="changeNumSkill">
+                <div class="btn" @click="rcard.numSkill--; changeNumSkill()">-</div>
+                <div class="btn" @click="rcard.numSkill++; changeNumSkill()">+</div>
+            </div>
+        </div>
+
+        <div id="skills" class="row-flex">
+            <div class="card" v-for="(skill, i) in rcard.skills">
+                <div class="row-flex-center">
+                    <div class="x4">技能{{ i + 1 }}</div>
+                    <input type="checkbox" v-model="skill.isItalic">
+                    <div>斜体</div>
+                </div>
+                <div class="row-flex-center">
+                    <div class="x4">技能名</div>
+                    <input class="textInput" v-model="skill.name">
+                </div>
+
+                <hr class="cardHr">
+                <div class="row-flex-center">
+                    <div class="x4">技能描述</div>
+                </div>
+                <div class="row-flex-center">
+                    <textarea class="skill-text" v-model="skill.text"></textarea>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- <div>{{rcard}}</div> -->
+    <!-- <div>{{rcard}}</div> -->
 
 </template>
 
@@ -373,9 +396,9 @@ onMounted(() => {
 }
 
 .cardHr {
-   border: 0;
-   height: 1px;
-   background-color: rgb(195, 195, 195);
+    border: 0;
+    height: 1px;
+    background-color: rgb(195, 195, 195);
 }
 
 .x2 {
@@ -430,7 +453,7 @@ onMounted(() => {
 
 .tip {
     font-size: 10px;
-    color:brown;
+    color: brown;
 }
 
 .skill-text {
@@ -438,9 +461,8 @@ onMounted(() => {
 }
 
 .translated {
-    color:gray;
+    color: gray;
     padding: 0px 0px 0px 10px;
     font-size: 10px
 }
-
 </style>

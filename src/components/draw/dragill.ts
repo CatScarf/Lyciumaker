@@ -19,6 +19,25 @@ export class IllDrager {
         this.cvs = cvs
         this.card = card
         this.mouse = mouse
+
+        // 触摸时获取坐标
+        cvs.canvas.addEventListener('touchmove', (e) => { 
+            this.mouse.touch2rel(e)
+        }, { passive: false })
+
+        // 触摸时开始滚动
+        cvs.canvas.addEventListener('touchstart', (e) => {
+            this.mouse.touch2rel(e)
+            if (this.mouse.isInSafe(cvs, 0.1)) {
+                e.preventDefault()
+                this.mouse.isTouch = true
+            }
+        }, { passive: false })
+
+        // 停止触摸时结束滚动
+        cvs.canvas.addEventListener('touchend', (e) => {
+            this.mouse.isTouch = false
+        }, { passive: false })
     }
 
     // 绘制摇杆
@@ -44,21 +63,31 @@ export class IllDrager {
         this.cvs.ctx.setLineDash([])
     }
 
+    // 开始拖拽
+    start() {
+        this.startX = this.mouse.relx
+        this.startY = this.mouse.rely
+        this.isDragging = true
+        this.startRect = new Rect(this.card.x, this.card.y, this.card.w, this.card.h)
+    }
+
+    // 结束拖拽
+    end() {
+        this.isDragging = false
+    }
+
     // 拖动插画
     drag() {
         this.mouse.client2rel(this.cvs, 0)
-        if(this.mouse.isDown && !this.isDragging) {
-            this.startX = this.mouse.relx
-            this.startY = this.mouse.rely
-            this.isDragging = true
-            this.startRect = new Rect(this.card.x, this.card.y, this.card.w, this.card.h)
-        } else if (!this.mouse.isDown && this.isDragging) {
-            this.isDragging = false
-        }
 
+        if(!this.isDragging && (this.mouse.isDown || this.mouse.isTouch)) {
+            this.start()
+        } else if (this.isDragging && (!this.mouse.isDown && !this.mouse.isTouch)) {
+            this.end()
+        }
+        
         if (this.isDragging) {
             this.drawRocker()
-
             const newRect = this.startRect.move(this.mouse.relx - this.startX, this.mouse.rely - this.startY)
             this.card.x = newRect.x
             this.card.y = newRect.y
