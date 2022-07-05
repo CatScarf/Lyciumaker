@@ -10,7 +10,7 @@ export class StopWatch {
     private avgLapTime: number[] = []
     private avgTime: number = 0
     private lapTime: number[] = []
-    private ratio: number = 0.97  // 移动平均的比例
+    private ratio: number = 0.99  // 移动平均的比例
 
     str: string = ''
 

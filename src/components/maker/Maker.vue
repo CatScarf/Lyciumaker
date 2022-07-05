@@ -89,10 +89,10 @@ function importIll() {
 // 修改渲染间隔
 function changeRenderInterval(intv: number, time: number) {
     const minTime = 30
-    const maxTime = 120
-    const stride = 10
-    const expected = 1
-    const tolerance = 0.5
+    const maxTime = 240
+    const stride = 3
+    const expected = 1.5
+    const tolerance = 0.1
     if (time <= expected * (1 - tolerance)) {
         intv -= stride
         intv = Math.max(intv, minTime)
@@ -143,7 +143,9 @@ function loop() {
     stopWatch.toString()
 
     // 修改渲染间隔
-    renderIntv.value = changeRenderInterval(renderIntv.value, stopWatch.getAvgTime())
+    if (loopcnt > 300) {
+        renderIntv.value = changeRenderInterval(renderIntv.value, stopWatch.getAvgTime())
+    }
 
     // 下一帧
     loopcnt += 1
@@ -226,7 +228,7 @@ onMounted(() => {
         <div>
             <canvas id="card-preview" v-on:mousemove="rmouse.clientX = $event.clientX; rmouse.clientY = $event.clientY"
             v-on:mousedown="rmouse.isDown = true" v-on:mouseup="rmouse.isDown = false"></canvas>
-            <div style="font-size:12px; padding-left:10px; padding-bottom:5px; color:lightslategray; line-height: 100%; font-family:monospace, 'Courier New', Courier;">Render:{{renderIntv}}-{{stopWatch.str}}</div>
+            <!-- <div style="font-size:12px; padding-left:10px; padding-bottom:5px; color:lightslategray; line-height: 100%; font-family:monospace, 'Courier New', Courier;">{{renderIntv}}-{{stopWatch.str}}</div> -->
         </div>
         
 

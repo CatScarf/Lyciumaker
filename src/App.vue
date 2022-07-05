@@ -6,7 +6,7 @@ import Maker from './components/maker/Maker.vue'
 
 import { refChars, jsonInfo } from './components/puzzle/chars';
 
-import {Fragment, Fragments, refFragments} from './components/puzzle/fragment'
+import {Fragments, refFragments} from './components/puzzle/fragment'
 import CharPreview from './components/puzzle/CharPreview.vue';
 
 enum Page {
@@ -18,7 +18,7 @@ const page: Ref<Page> = ref(Page.Maker)
 const isSmallCharHover: Ref<boolean> = ref(false)
 const refHoverFgs: Ref<Fragments> = ref(new Fragments())
 
-const refVersion: Ref<string> = ref('2.4.2')
+const refVersion: Ref<string> = ref('2.4.6')
 
 window.onbeforeunload = (event: any) => {
   return "您确认要离开吗？所有内容将会丢失！"
