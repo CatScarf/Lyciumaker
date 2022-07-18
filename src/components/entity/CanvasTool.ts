@@ -19,7 +19,7 @@ export class CanvasTool {
     // 设置Canvas大小
     setCanvasSize(superdpr: number = 1) {
         const canvas = this.canvas
-        const dpr = Math.max(2, window.devicePixelRatio * superdpr)
+        const dpr = Math.max(2, window.devicePixelRatio) * superdpr
         canvas.width = this.logicSize.x * dpr
         canvas.height = this.logicSize.y * dpr
         canvas.style.width = this.displaySize.x + 'px'
