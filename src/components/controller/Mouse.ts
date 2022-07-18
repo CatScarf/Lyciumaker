@@ -29,7 +29,7 @@ export class Mouse {
 
         addel('mousedown', (e) => {
             const pos = this.getPos()
-            if (this.mouseInCanvas()) {
+            if (this.cvt.isVisible() && this.mouseInCanvas()) {
                 this._isDown = true
                 this.startX = pos.x
                 this.startY = pos.y
@@ -49,10 +49,11 @@ export class Mouse {
         addel('touchstart', (e) => {
             this.x = e.touches[0].clientX
             this.y = e.touches[0].clientY
-            if (this.mouseInCanvas() && this.mouseInSafeArea()) {
+            if (this.cvt.isVisible() && this.mouseInCanvas() && this.mouseInSafeArea()) {
                 e.preventDefault()
-                this._isDown = true
                 const pos = this.getPos()
+                console.log(`touchstart: ${pos.x}, ${pos.y}`)
+                this._isDown = true
                 this.startX = pos.x
                 this.startY = pos.y
             }

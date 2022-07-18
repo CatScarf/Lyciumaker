@@ -31,6 +31,11 @@ export class CanvasTool {
     clear() {
         this.ctx.clearRect(0, 0, this.logicSize.x, this.logicSize.y)
     }
+
+    // 判断Canvas是否可见
+    isVisible() {
+        return this.canvas.offsetParent !== null
+    }
 }
 
 // 生成临时Canvas 

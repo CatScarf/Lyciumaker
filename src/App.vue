@@ -18,7 +18,7 @@ const page: Ref<Page> = ref(Page.Maker)
 const isSmallCharHover: Ref<boolean> = ref(false)
 const refHoverFgs: Ref<Fragments> = ref(new Fragments())
 
-const refVersion: Ref<string> = ref('2.5.1')
+const refVersion: Ref<string> = ref('2.5.4')
 
 const fragments: Ref<Fragments> = ref(new Fragments())
 
