@@ -1,4 +1,4 @@
-import { Canvas } from "../entity/Canvas"
+import { CanvasTool } from "../entity/CanvasTool"
 
 // 技能
 export class Skill {
@@ -24,15 +24,15 @@ class Illastration {
     }
 
     // 导入插画
-    import(url: string, cvs: Canvas, card: Card) {
+    import(url: string, cvt: CanvasTool, card: Card) {
         this.img.src = url
         this.img.onload = () => {
             this.isLoad = true
 
-            let w = cvs.logicSize.x
+            let w = cvt.logicSize.x
             let h = w * (this.img.height / this.img.width)
-            if (h < cvs.logicSize.y) {
-                h = cvs.logicSize.y
+            if (h < cvt.logicSize.y) {
+                h = cvt.logicSize.y
                 w = h * (this.img.width / this.img.height)
             }
 
@@ -106,7 +106,7 @@ export class Card {
     }
 
     // 导入插画
-    importIllastration(url: string, cvs: Canvas) {
-        this.illastration.import(url, cvs, this)
+    importIllastration(url: string, cvt: CanvasTool) {
+        this.illastration.import(url, cvt, this)
     }
 }

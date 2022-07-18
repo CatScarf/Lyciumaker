@@ -1,41 +1,34 @@
 <script setup lang="ts">
 
 import * as dw from '../draw/draw'
-import { Coord } from '../entity/Coord'
+import { Vector } from '../entity/Vector'
 import { onMounted, watch } from 'vue'
-import { Canvas } from '../entity/Canvas';
+import { CanvasTool } from '../entity/CanvasTool';
 
-let cvs: Canvas
+let cvt: CanvasTool
 let width: number
 
 const props = defineProps<{
     width: string
-    subcvs: Canvas
+    subcvt: CanvasTool
 }>()
 
 function loop() {
-    dw.clearCanvas(cvs)
-    // cvs.ctx.fillStyle = 'white'
-    // cvs.ctx.fillRect(0, 0, width, width)
-    cvs.ctx.drawImage(props.subcvs.canvas, 0, 0, width, width)
+    cvt.clear()
+    // cvt.ctx.fillStyle = 'white'
+    // cvt.ctx.fillRect(0, 0, width, width)
+    cvt.ctx.drawImage(props.subcvt.canvas, 0, 0, width, width)
 }
 
-watch(() => {return props.subcvs}, (n, o) => {
+watch(() => {return props.subcvt}, (n, o) => {
     loop()
 })
 
 function oninitCanvas() {
     const canvas = document.getElementById('charPreview') as HTMLCanvasElement
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
     width = Number(props.width)
-    const size = new Coord(width, width)
-    cvs = {
-        canvas: canvas,
-        ctx: ctx,
-        logicSize: size,
-        displaySize: size
-    }
-    dw.setCanvasSize(cvs)
+    const logicSize = new Vector(Number(props.width), Number(props.width))
+    cvt = new CanvasTool(canvas, logicSize, logicSize)
 }
 
 onMounted(() => {

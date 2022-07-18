@@ -8,27 +8,30 @@ class Chars {
     schs: string[] = []
     zchs: string[] = []
 
-    rpl(chs: string[], ch: string, fgs: Fragments) {
+    // 判断是否有重复的字符，如果有，则替换
+    replace(chs: string[], ch: string, fgs: Fragments) {
         const i = chs.indexOf(ch[0])
         if (i >= 0) {
             this.schs[i] = fgs.sch[0]
             this.zchs[i] = fgs.zch[0]
             this.jsons[i] = fgs.tojson()
-            return 1
+            return true
         } else {
-            return 0
+            return false
         }
     }
 
+    // 添加字符到字符表，如果已有则替换
     add(fgs: Fragments) {
-        const res = this.rpl(this.schs, fgs.sch, fgs) + this.rpl(this.schs, fgs.zch, fgs) + this.rpl(this.zchs, fgs.sch, fgs) + this.rpl(this.zchs, fgs.zch, fgs)
-        if (res === 0) {
+        const res = this.replace(this.schs, fgs.sch, fgs) || this.replace(this.schs, fgs.zch, fgs) || this.replace(this.zchs, fgs.sch, fgs) || this.replace(this.zchs, fgs.zch, fgs)
+        if (!res) {
             this.schs.push(fgs.sch[0])
             this.zchs.push(fgs.zch[0])
             this.jsons.push(fgs.tojson())
         }
     }
 
+    // 判断字符表是否包含指定的字符，如果包含则返回json，否则返回null
     hasjson(char: string) {
         function findJson(jsons: string[], chs: string[], char: string) {
             const i = chs.indexOf(char)

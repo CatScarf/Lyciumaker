@@ -19,7 +19,9 @@ interface SkText {
     maxHeight: number,  // 最大高度, miny1 = (y2 - maxy1) * minHeight
 
     indent: number,     // 首行缩进宽度
+    epsilon: number,    // 拉伸偏移，此值越大文字越宽
     spacing: number,    // 段间距, 实际段间距为spacing * yoff
+    rowSpacing: number, // 行间距, 实际行间距为rowSpacing * yoff
     maxFont: number,    // 最大字体
 
     textStyle: TextStyle,  // 技能文字样式

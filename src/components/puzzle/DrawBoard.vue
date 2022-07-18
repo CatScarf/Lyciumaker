@@ -1,17 +1,27 @@
 <script setup lang="ts">
 
 import { onMounted, Ref, ref, watch } from 'vue'
-import { Fragments, refFragments } from './fragment'
-import { setCanvasSize, clearCanvas, drawAuxiliaryLines, drawText, drawCursorPosition } from './draw'
-import { Mouse, Box, moveTransBox, drawTransBox } from './move'
+import { Fragments } from './fragment'
+import { drawAuxiliaryLines, drawText } from './draw'
 
 import EditCards from './EditCards.vue'
 import { downloadJson } from './util'
 import { refChars } from './chars'
 import { translate } from '../fonts/trainslate'
+import { Mouse } from '../controller/Mouse'
+import { CanvasTool } from '../entity/CanvasTool'
+import { Vector } from '../entity/Vector'
+import { AnchorBox } from '../entity/AnchorBox'
+import { Rect } from '../entity/Rect'
+
+// 组件参数
+const props = defineProps<{
+    fragments: Fragments
+}>()
 
 // 自动繁体输入
 const refIsTranslate = ref(true)
+
 
 // 画布相关常量
 const displayw: number = 400 //显示宽高
@@ -19,88 +29,62 @@ const width: number = 512  // 逻辑宽高
 const margin: number = displayw * 0.05; // 基本边框
 
 // 画布相关变量
-let canvas: HTMLCanvasElement;  // 画布
-let ctx: CanvasRenderingContext2D;  // 画布上下文
-let logicSize: number[];  // canvas的逻辑大小
-let displaySize: number[];  // canvas的绘制大小
+let cvt: CanvasTool
 
 // 所有字符片段
-refFragments.value.width = width
+const fragments: Fragments = props.fragments
 
 // 鼠标相关变量
-let clientX: Ref<number> = ref(0)
-let clientY: Ref<number> = ref(0)
-const mouse: Ref<Mouse> = ref({
-    isMouseDown: false,
-    relx: 0,
-    rely: 0,
-})
-
+let mouse: Mouse
 
 // 锚框相关变量
-const box: Box = {
-    anchorWidth: 5,
-    moving: -1,
-    startC: [0, 0],
-    startSize: [0, 0],
-    mvAnchors: [],
-    mkAnchors: []
-}
+let anchorBox: AnchorBox
 
 // 动画循环
 function loop() {
     // 清空画布
-    clearCanvas(ctx, logicSize)
+    cvt.clear()
 
     // 绘制辅助线
-    drawAuxiliaryLines(ctx, width, margin)
+    drawAuxiliaryLines(cvt.ctx, width, margin)
 
     // 绘制文字
-    for (let i = 0; i < refFragments.value.flist.length; i++) {
-        const fgs = refFragments.value
+    for (let i = 0; i < fragments.flist.length; i++) {
+        const fgs = fragments
         const fg = fgs.flist[i]
-        drawText(ctx, fg, width, mouse.value.isMouseDown, margin)
+        drawText(cvt.ctx, fg, width, mouse.isDown(), margin)
     }
 
     // 绘制锚框
-    for (let i = 0; i < refFragments.value.flist.length; i++) {
-        const fg = refFragments.value.flist[i]
-        const slst = fg.selectState()
-        const isMv = slst == 1 ? true : false
-
-        if (slst == 1 || slst == 2) {
-            box.mvAnchors = drawTransBox(ctx, fg.size, width, margin, box.anchorWidth, true, 'blue', isMv)
-            box.mkAnchors = drawTransBox(ctx, fg.mask, width, margin, box.anchorWidth, false, 'blue', !isMv)
-            if (slst == 1) {
-                fg.setSize(moveTransBox(box, fg.size, mouse.value, true, width))
-            } else if (slst == 2) {
-                fg.setMask(moveTransBox(box, fg.mask, mouse.value, false, width))
-            }
+    for (let fg of fragments.flist) {
+        const state = fg.selectState()
+        if (state != 'none') {
+            const size = fg.getSize()
+            const mask = fg.getMask()
+            anchorBox.resize(Rect.fromCenterCoord(size.x + width / 2, size.y + width / 2, size.w, size.h), Rect.fromQuadCoord(mask.x1, mask.y1, mask.x2, mask.y2))
+            const res = anchorBox.move(state)
+            fg.size = [res.size.x + res.size.w / 2 - width / 2, res.size.y + res.size.h / 2 - width / 2, res.size.w, res.size.h]
+            fg.mask = [res.mask.x, res.mask.y, res.mask.x + res.mask.w, res.mask.y + res.mask.h]
+            anchorBox.draw(state)
         }
     }
 
-    // 确定鼠标位置
-    const rect = canvas.getBoundingClientRect();
-    mouse.value.relx = (clientX.value - rect.left - margin) * ((width) / (displayw - margin * 2))
-    mouse.value.rely = (clientY.value - rect.top - margin) * ((width) / (displayw - margin * 2))
+    // 鼠标动画
+    mouse.visible()
 
-    // 绘制参考信息
-    drawCursorPosition(ctx, logicSize, mouse.value, box)
-
+    // 下一帧
     window.requestAnimationFrame(loop);
 }
 
-// 初始化canvas
+// 初始化canvas并开始动画循环
 function oninitCanvas() {
-    canvas = document.getElementById('drawBoard') as HTMLCanvasElement;
-    ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-
-    const widthWithMargin = width + margin * 2
-    logicSize = [widthWithMargin, widthWithMargin]
-    displaySize = [displayw, displayw]
-    // 设置画布大小
-    setCanvasSize(canvas, ctx, logicSize, displaySize)
-    window.requestAnimationFrame(loop);
+    const canvas = document.getElementById('drawBoard') as HTMLCanvasElement;
+    const logicSize =  new Vector(width + margin * 2, width + margin * 2) 
+    const displaySize = new Vector(displayw, displayw)
+    cvt = new CanvasTool(canvas, logicSize, displaySize)
+    mouse = new Mouse(cvt)
+    anchorBox = new AnchorBox(cvt, mouse, margin)
+    window.requestAnimationFrame(loop)
 }
 
 // 挂载时初始化canvas
@@ -124,18 +108,18 @@ function titleGuard(sc: string, tc: string) {
 
 // 应用
 function apply() {
-    if (titleGuard(refFragments.value.sch, refFragments.value.zch)) {
-        refChars.value.add(refFragments.value)
+    if (titleGuard(fragments.sch, fragments.zch)) {
+        refChars.value.add(fragments)
     }
 }
 
 // 导出Json
 function exportJson() {
-    if (titleGuard(refFragments.value.sch, refFragments.value.zch)) {
+    if (titleGuard(fragments.sch, fragments.zch)) {
         apply()
-        const sp = refFragments.value.sch[0]
-        const td =  refFragments.value.zch[0]
-        downloadJson(`${sp}-${td}.json`, refFragments.value.tojson())
+        const sp = fragments.sch[0]
+        const td =  fragments.zch[0]
+        downloadJson(`${sp}-${td}.json`, fragments.tojson())
     }
 }
 
@@ -162,10 +146,10 @@ function importJson(event: any) {
     }
 }
 
-watch(() => {return refFragments.value.sch}, (n, o) => {
+watch(() => {return fragments.sch}, (n, o) => {
     console.log(o, n)
     if (refIsTranslate.value) {
-        refFragments.value.zch = translate(n)
+        fragments.zch = translate(n)
     }
 })
 
@@ -175,15 +159,13 @@ watch(() => {return refFragments.value.sch}, (n, o) => {
     <div class="board">
         <!-- 主编辑器 -->
         <div class="card">
-            <canvas id="drawBoard" v-on:mousemove="clientX = $event.clientX; clientY = $event.clientY"
-                v-on:mousedown="mouse.isMouseDown = true" v-on:mouseup="mouse.isMouseDown = false"
-                v-on:touchstart="mouse.isMouseDown = true" v-on:touchend="mouse.isMouseDown = false"></canvas>
+            <canvas id="drawBoard"></canvas>
         </div>
         <!-- 导出按钮 -->
         <div class="card export">
             <div class="text exportLine">简体汉字*</div>
             <div class="exportLine">
-                <input class="textInput" v-model="refFragments.sch">
+                <input class="textInput" v-model="fragments.sch">
             </div>
             <div class="row-flex-center">
                 <div class="exportLine">繁体*</div>
@@ -191,11 +173,11 @@ watch(() => {return refFragments.value.sch}, (n, o) => {
                 <div>自动</div>
             </div>
             <div class="exportLine">
-                <input class="textInput" v-model="refFragments.zch" :disabled="refIsTranslate">
+                <input class="textInput" v-model="fragments.zch" :disabled="refIsTranslate">
             </div>
             <div class="exportLine">描述（选填）</div>
             <div class="exportLine">
-                <input class="textInput" v-model="refFragments.describe">
+                <input class="textInput" v-model="fragments.describe">
             </div>
             <div class="exportLine">
                 <button @click="apply">应用</button>
@@ -219,7 +201,7 @@ watch(() => {return refFragments.value.sch}, (n, o) => {
 
         </div>
         <!-- 数值编辑器 -->
-        <EditCards :refFragments='refFragments'></EditCards>
+        <EditCards :fragments='fragments'></EditCards>
     </div>
 
 </template>

@@ -1,9 +1,4 @@
-// 鼠标相关变量
-export type Mouse = {
-    isMouseDown: boolean
-    relx: number
-    rely: number
-}
+import { Mouse } from "../controller/Mouse"
 
 // 变形框相关变量
 export type Box = {
@@ -54,22 +49,22 @@ export function moveTransBox(box: Box, _size: number[], mouse: Mouse, isMv: bool
 
     // console.log(`[moveTransBox] isMouseDown: ${isMouseDown}, moving: ${box.moving}`)
 
-    if (mouse.isMouseDown && box.moving == -1) {
-        if (isBetween(mouse.relx, anchors[0][0], anchors[2][0]) && isBetween(mouse.rely, anchors[0][1], anchors[6][1])) {
+    if (mouse.isDown() && box.moving == -1) {
+        if (isBetween(mouse.getPos().x, anchors[0][0], anchors[2][0]) && isBetween(mouse.getPos().y, anchors[0][1], anchors[6][1])) {
             box.moving = 8;
-            box.startC = [mouse.relx, mouse.rely];
+            box.startC = [mouse.getPos().x, mouse.getPos().y];
             box.startSize = [size[0], size[1], size[2], size[3]]
         }
 
         for (let i = 0; i < anchors.length; i++) {
-            if (euclideanDistance([mouse.relx, mouse.rely], anchors[i]) <= box.anchorWidth * 4) {
+            if (euclideanDistance([mouse.getPos().x, mouse.getPos().y], anchors[i]) <= box.anchorWidth * 4) {
                 box.moving = i;
-                box.startC = [mouse.relx, mouse.rely];
+                box.startC = [mouse.getPos().x, mouse.getPos().y];
                 box.startSize = [size[0], size[1], size[2], size[3]]
                 break;
             }
         }
-    } else if (!mouse.isMouseDown && box.moving != -1) {
+    } else if (!mouse.isDown() && box.moving != -1) {
         
         box.moving = -1;
         box.startC = [0, 0];
@@ -77,8 +72,8 @@ export function moveTransBox(box: Box, _size: number[], mouse: Mouse, isMv: bool
 
     // 移动
     if (box.moving != -1) {
-        const speedX = mouse.relx - box.startC[0];
-        const speedY = mouse.rely - box.startC[1];
+        const speedX = mouse.getPos().x - box.startC[0];
+        const speedY = mouse.getPos().y - box.startC[1];
 
         const deltas = [[speedX / 2, speedY / 2, -speedX, -speedY],
         [0, speedY / 2, 0, -speedY],

@@ -20,7 +20,9 @@ export const oldConfig: Config = {
         maxHeight: 3,
 
         indent: 0.5,
+        epsilon: 0,
         spacing: 0.3,
+        rowSpacing: 0.1,
         maxFont: 12,
 
         textStyle: {

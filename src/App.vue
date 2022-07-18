@@ -1,12 +1,12 @@
 <script setup lang="ts">
 
-import { Ref, ref } from 'vue'
+import { onMounted, Ref, ref } from 'vue'
 import DrawBoard from './components/puzzle/DrawBoard.vue'
 import Maker from './components/maker/Maker.vue'
 
 import { refChars, jsonInfo } from './components/puzzle/chars';
 
-import {Fragments, refFragments} from './components/puzzle/fragment'
+import { Fragments } from './components/puzzle/fragment'
 import CharPreview from './components/puzzle/CharPreview.vue';
 
 enum Page {
@@ -18,7 +18,9 @@ const page: Ref<Page> = ref(Page.Maker)
 const isSmallCharHover: Ref<boolean> = ref(false)
 const refHoverFgs: Ref<Fragments> = ref(new Fragments())
 
-const refVersion: Ref<string> = ref('2.4.6')
+const refVersion: Ref<string> = ref('2.5.0')
+
+const fragments: Ref<Fragments> = ref(new Fragments())
 
 window.onbeforeunload = (event: any) => {
   return "您确认要离开吗？所有内容将会丢失！"
@@ -29,7 +31,7 @@ window.onbeforeunload = (event: any) => {
 <template>
   <div id="nav-bar" class="row-flex-center">
     <div class="title">
-      <div>Lycium制卡器{{refVersion}}</div>
+      <div>Lycium制卡器{{ refVersion }}</div>
     </div>
     <div class="nav-btn" @click="page = Page.Maker">
       <div>制卡</div>
@@ -52,13 +54,15 @@ window.onbeforeunload = (event: any) => {
   <div style="padding: 5px; background: #33cc66; font-size: 10px; text-align: center; color: white">
     感谢大家的捐赠，现在服务器的经济压力大幅缓解，您仍可以
     <a href="https://www.bilibili.com/video/BV19P4y1j7n6/" style="display: inline-block; color: white" target="_blank">
-        在该视频下充电
+      在该视频下充电
     </a>
     以捐助本网站。此视频下的捐助将全部用于本站服务器费用。具体收支请点击导航栏“收支”查看
   </div>
 
   <div id="chars" class="row-flex-center">
-    <div class="char card" v-for="char in refChars.jsons" @click="refFragments.fromjson(char)" @mouseenter="isSmallCharHover = true; refHoverFgs = new Fragments().fromjson(char)" @mouseleave="isSmallCharHover = false">{{jsonInfo(char)}}</div>
+    <div class="char card" v-for="char in refChars.jsons" @click="fragments.fromjson(char)"
+      @mouseenter="isSmallCharHover = true; refHoverFgs = new Fragments().fromjson(char)"
+      @mouseleave="isSmallCharHover = false">{{ jsonInfo(char) }}</div>
   </div>
 
   <div style="width: fit-content;">
@@ -67,24 +71,24 @@ window.onbeforeunload = (event: any) => {
     </div>
 
     <div v-show="page === Page.Puzzle">
-      <DrawBoard></DrawBoard>
+      <DrawBoard :fragments="fragments"></DrawBoard>
     </div>
   </div>
 
   <div id="char-preview" v-show="isSmallCharHover">
-    <CharPreview class="relative-center" width='256' :subcvs="refHoverFgs.draw()"></CharPreview>
+    <CharPreview class="relative-center" width='256' :subcvt="refHoverFgs.draw()"></CharPreview>
   </div>
 
   <div id="bottomBar" style="margin-top:20px; margin-bottom:20px; padding: 5px 5px; background: #d5d5d5;">
     <a class="bottomInfo" href="http://beian.miit.gov.cn/" target="_blank">吉ICP备2022000349号-1</a>
     &nbsp&nbsp
     <img src="/备案图标.png" style="width:20px; height:20px;">
-    <a class="bottomInfo" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=22010402001039" target="_blank">吉公网安备22010402001039号</a>
+    <a class="bottomInfo" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=22010402001039"
+      target="_blank">吉公网安备22010402001039号</a>
   </div>
 </template>
 
 <style scoped>
-
 #nav-bar {
   background-color: rgb(44, 49, 50);
   display: flex;
@@ -104,6 +108,7 @@ window.onbeforeunload = (event: any) => {
 
   font-size: 15px;
 }
+
 .title {
   /* color: rgb(254, 110, 110); */
   padding: 0px 10px;
@@ -131,6 +136,7 @@ window.onbeforeunload = (event: any) => {
   place-items: center;
   padding: 1px;
 }
+
 .card {
   border-radius: 5px;
   box-shadow: 0px 0px 7px 0px rgb(167 161 161);
@@ -167,19 +173,18 @@ window.onbeforeunload = (event: any) => {
   transform: translate(-50%, -50%);
 }
 
-#bottomBar{
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    height:20px;
+#bottomBar {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  height: 20px;
 }
 
-.bottomInfo{
-    color:#666;
-    font-size:12px;
-    text-decoration:none;
-    height: 20px;
-    line-height: 20px;
+.bottomInfo {
+  color: #666;
+  font-size: 12px;
+  text-decoration: none;
+  height: 20px;
+  line-height: 20px;
 }
-
 </style>

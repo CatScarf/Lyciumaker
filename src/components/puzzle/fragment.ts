@@ -1,7 +1,8 @@
 import { ref, Ref } from "vue"
 import * as dw from '../draw/draw'
 import * as df from '../fonts/dynamicFont'
-import { Coord } from '../entity/Coord'
+import { Vector } from '../entity/Vector'
+import { tempCanvas } from "../entity/CanvasTool"
 
 // 大写汉字
 class UpperNumber {
@@ -38,6 +39,24 @@ export class Fragment {
         
     }
 
+    getSize() {
+        return {
+            x: this.size[0],
+            y: this.size[1],
+            w: this.size[2],
+            h: this.size[3]
+        }
+    }
+
+    getMask() {
+        return {
+            x1: this.mask[0],
+            y1: this.mask[1],
+            x2: this.mask[2],
+            y2: this.mask[3]
+        }
+    }
+
     unselect() {
         this.selected[0] = false
         this.selected[1] = false
@@ -49,11 +68,11 @@ export class Fragment {
 
     selectState() {
         if (this.selected[0]) {
-            return 1
+            return 'size'
         } else if (this.selected[1]) {
-            return 2
+            return 'mask'
         } else {
-            return 0
+            return 'none'
         }
     }
 
@@ -86,8 +105,8 @@ export class Fragment {
         const mask: number[] = this.mask
 
         // 临时Canvas
-        const logicSize = new Coord(width, width)
-        const cvs = dw.tempCanvas(logicSize, logicSize)
+        const logicSize = new Vector(width, width)
+        const cvt = tempCanvas(logicSize, logicSize)
     
         // 绘制相关参数
         const dx = (Number(width) - Number(size[2])) / 2 + size[0] 
@@ -96,37 +115,37 @@ export class Fragment {
         const sy = (mask[1] - dy) / size[3] * width
         const sw = (mask[2] - mask[0]) / size[2] * width
         const sh = (mask[3] - mask[1]) / size[3] * width
-        cvs.ctx.textAlign = "center"
-        cvs.ctx.textBaseline = "middle"
+        cvt.ctx.textAlign = "center"
+        cvt.ctx.textBaseline = "middle"
 
         // 获取字体
         df.fontsTexts.jinmeiTexts = df.contrastAddFont(df.fontsTexts.jinmeiTexts, text)
-        cvs.ctx.font = width + "px JinMeiMaoCaoXing-" + text
+        cvt.ctx.font = width + "px JinMeiMaoCaoXing-" + text
     
         // 绘制蒙版
-        cvs.ctx.rect(sx, sy, sw, sh);
-        cvs.ctx.clip();
+        cvt.ctx.rect(sx, sy, sw, sh);
+        cvt.ctx.clip();
     
         // 描边1
         if(line1Width > 0) {
-            cvs.ctx.strokeStyle = 'white'
-            cvs.ctx.lineWidth = line1Width * width
-            cvs.ctx.strokeText(text, width / 2, width / 2);
+            cvt.ctx.strokeStyle = 'white'
+            cvt.ctx.lineWidth = line1Width * width
+            cvt.ctx.strokeText(text, width / 2, width / 2);
         }
         // 描边2
         if(line2Width > 0) {
-            cvs.ctx.strokeStyle = 'black'
-            cvs.ctx.lineWidth = line2Width * width
-            cvs.ctx.strokeText(text, width / 2, width / 2);
+            cvt.ctx.strokeStyle = 'black'
+            cvt.ctx.lineWidth = line2Width * width
+            cvt.ctx.strokeText(text, width / 2, width / 2);
         }
         // 填充
         if (!nofill) {
-            cvs.ctx.fillStyle = 'white'
-            cvs.ctx.fillText(text, width / 2, width / 2)
+            cvt.ctx.fillStyle = 'white'
+            cvt.ctx.fillText(text, width / 2, width / 2)
         }
     
         // 将临时Canvas绘制到主Canvas上
-        mainctx.drawImage(cvs.canvas, dx + Number(margin), dy + Number(margin), size[2], size[3])
+        mainctx.drawImage(cvt.canvas, dx + Number(margin), dy + Number(margin), size[2], size[3])
     }
 
 }
@@ -144,7 +163,6 @@ export class Fragments {
     font = puzzleFonts.jinmeimaocaoxing
 
     flist: Fragment[] = []
-    // valid: boolean[] = []
     width: number
 
     constructor(width: number=512) {
@@ -222,19 +240,19 @@ export class Fragments {
 
     draw(line1Width = 0, line2Width = 0) {
         const width = this.width
-        const size = new Coord(width, width)
-        const maincvs = dw.tempCanvas(size, size)
+        const size = new Vector(width, width)
+        const maincvt = tempCanvas(size, size)
         for (let i = 0; i < this.flist.length; i++) {
-            this.flist[i].draw(maincvs.ctx, 0, line1Width, 0, true)
+            this.flist[i].draw(maincvt.ctx, 0, line1Width, 0, true)
         }
         for (let i = 0; i < this.flist.length; i++) {
-            this.flist[i].draw(maincvs.ctx, 0, 0, line2Width, true)
+            this.flist[i].draw(maincvt.ctx, 0, 0, line2Width, true)
         }
         for (let i = 0; i < this.flist.length; i++) {
-            this.flist[i].draw(maincvs.ctx, 0, 0, 0, false)
+            this.flist[i].draw(maincvt.ctx, 0, 0, 0, false)
         }
-        return maincvs
+        return maincvt
     }
 }
 
-export let refFragments: Ref<Fragments> = ref(new Fragments())
+// export let refFragments: Ref<Fragments> = ref(new Fragments())

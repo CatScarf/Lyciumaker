@@ -5,13 +5,13 @@ import { Fragments } from './fragment'
 import EditCard from './EditCard.vue'
 
 // 组建的输入
-const props = defineProps({
-  refFragments: Fragments,
-})
+const props = defineProps<{
+  fragments: Fragments
+}>()
 
 let refAddOn: Ref<boolean> = ref(false)    // 鼠标是否悬停在Add按钮上
 let refAddDown: Ref<boolean> = ref(false)  // 鼠标是否点击Add按钮
-const fragments: Fragments = props.refFragments as Fragments  // 所有字符块
+const fragments: Fragments = props.fragments  // 所有字符块
 
 // 选中某个卡片并取消其他卡片的选中状态
 function Select(msg: string) {
@@ -39,7 +39,7 @@ onMounted(() => {
 
   <div id="addEditCard" v-bind:class="{ preSelect: refAddOn, select: refAddDown }" @mouseenter="refAddOn = true"
     @mouseleave="refAddOn = false; refAddDown = false" @mousedown="refAddDown = true; fragments.add()"
-    @mouseup="refAddDown = false" @touchstart="refAddDown = true" @touchend="refAddOn = false; refAddDown = false">
+    @mouseup="refAddDown = false">
     <div id="addChar">＋</div>
   </div>
 

@@ -5,7 +5,7 @@ import { miscellaneous } from '../draw/miscellaneous';
 import * as dw from '../draw/draw'
 import { drawSkills } from '../draw/drawSkills'
 import { IllDrager } from '../draw/dragill'
-import { Coord } from '../entity/Coord';
+import { Vector } from '../entity/Vector';
 import { Card, Power } from './card'
 import { translate } from '../fonts/trainslate'
 import { computed } from '@vue/reactivity';
@@ -15,8 +15,8 @@ import { sets } from '../fonts/sets';
 import { Config } from '../config/config'
 import { oldConfig } from '../config/old'
 
-import { Mouse } from '../entity/Mouse';
-import { Canvas } from '../entity/Canvas';
+import { Mouse } from '../controller/Mouse';
+import { CanvasTool } from '../entity/CanvasTool';
 
 import { StopWatch } from '../util/StopWatch'
 
@@ -24,16 +24,16 @@ const props = defineProps(['version'])
 
 const logicWidth = 400
 const ratio = 88 / 63
-const logicSize = new Coord(logicWidth, logicWidth * ratio)
-const styleSize = new Coord().like(logicSize)
+const logicSize = new Vector(logicWidth, logicWidth * ratio)
+const styleSize = new Vector().like(logicSize)
 
-var rcvs: Ref<Canvas>                     // Canvas相关参数
+var rcvt: Ref<CanvasTool>                     // CanvasTool相关参数
 const rcard: Ref<Card> = ref(new Card())  // 卡牌相关参数
 let isCardChanged: boolean = false      // 卡牌相关参数是否改变
 const config: Config = oldConfig          // 配置文件
 
 // 鼠标相关参数
-const rmouse: Ref<Mouse> = ref(new Mouse())
+var mouse: Mouse
 var illDrager: IllDrager
 
 // // 动态改变卡牌宽度
@@ -41,17 +41,17 @@ var illDrager: IllDrager
 
 // 根据窗口大小改变卡牌大小
 function setCnavseSize() {
-    const width = Math.min(window.innerWidth - 10, rcvs.value.logicSize.x)
-    if (width != rcvs.value.displaySize.x) {
-        rcvs.value.displaySize = new Coord(width, width * ratio)
-        dw.setCanvasSize(rcvs.value, 2)
+    const width = Math.min(window.innerWidth - 10, rcvt.value.logicSize.x)
+    if (width != rcvt.value.displaySize.x) {
+        rcvt.value.displaySize = new Vector(width, width * ratio)
+        rcvt.value.setCanvasSize(2)
     }
 }
 
 // 更改插画
 function changeIllastration(event: any) {
     const url: string = URL.createObjectURL(event.target.files[0])
-    rcard.value.importIllastration(url, rcvs.value)
+    rcard.value.importIllastration(url, rcvt.value)
 }
 
 // 缩放插画
@@ -69,7 +69,7 @@ function exportCard() {
         const downloadLink = document.createElement('a');
         const fileName = rcard.value.name + '.png'
         downloadLink.setAttribute('download', fileName);
-        rcvs.value.canvas.toBlob((blob) => {
+        rcvt.value.canvas.toBlob((blob) => {
             if (blob) {
                 const url = URL.createObjectURL(blob);
                 downloadLink.setAttribute('href', url);
@@ -113,25 +113,25 @@ function loop() {
     // 仅当需要绘制的内容变化时重新渲染
     if (isCardChanged || loopcnt % renderIntv.value == 0 || illDrager.isDragging) {
         // 清空画布
-        dw.clearCanvas(rcvs.value)
+        dw.clearCanvas(rcvt.value)
         // 绘制插画
-        dw.drawIllatration(rcvs.value, rcard.value)
+        dw.drawIllatration(rcvt.value, rcard.value)
         // 绘制外框
-        dw.drawOutFrame(rcvs.value, rcard.value, dw.outFrame)
+        dw.drawOutFrame(rcvt.value, rcard.value, dw.outFrame)
         // 绘制体力
-        dw.drawHeartLimit(config, rcvs.value, rcard.value, miscellaneous)
+        dw.drawHeartLimit(config, rcvt.value, rcard.value, miscellaneous)
         // 绘制技能
         stopWatch.lap()
-        const bottomy = drawSkills(config, rcvs.value, rcard.value, miscellaneous).topy
+        const bottomy = drawSkills(config, rcvt.value, rcard.value, miscellaneous).topy
         // 绘制称号与武将名
         stopWatch.lap()
-        dw.drawTitleName(config, rcvs.value, rcard.value, miscellaneous, bottomy)
+        dw.drawTitleName(config, rcvt.value, rcard.value, miscellaneous, bottomy)
         // 绘制底部信息
         stopWatch.lap()
-        dw.drawBottom(config, rcvs.value, rcard.value)
+        dw.drawBottom(config, rcvt.value, rcard.value)
         // 绘制版本信息
         stopWatch.lap()
-        dw.drawVersion(config, rcvs.value, props.version)
+        dw.drawVersion(config, rcvt.value, props.version)
         // 重置绘制标记
         isCardChanged = false
     }
@@ -201,23 +201,17 @@ const missing = computed(() => {
 
 // 初始化Canvas
 function initCanvas() {
-    const canvas = document.getElementById('card-preview') as HTMLCanvasElement;
-    rcvs = ref({
-        canvas: canvas,
-        ctx: canvas.getContext('2d') as CanvasRenderingContext2D,
-        logicSize: logicSize,
-        displaySize: styleSize
-    })
-    setCnavseSize()
-    dw.setCanvasSize(rcvs.value, 2)
+    const canvas = document.getElementById('card-preview') as HTMLCanvasElement
+    rcvt = ref(new CanvasTool(canvas, logicSize, styleSize))
 }
 
 // 挂载时初始化canvas
 onMounted(() => {
     initCanvas()
-    illDrager = new IllDrager(rcvs.value, rcard.value, rmouse.value)
+    mouse = new Mouse(rcvt.value)
+    illDrager = new IllDrager(rcvt.value, rcard.value, mouse)
     window.requestAnimationFrame(loop);
-    rcard.value.importIllastration('/png/刘备-六星耀帝.png', rcvs.value);
+    rcard.value.importIllastration('/png/刘备-六星耀帝.png', rcvt.value);
 })
 
 </script>
@@ -226,8 +220,7 @@ onMounted(() => {
 
     <div id="maker" class="row-flex">
         <div>
-            <canvas id="card-preview" v-on:mousemove="rmouse.clientX = $event.clientX; rmouse.clientY = $event.clientY"
-            v-on:mousedown="rmouse.isDown = true" v-on:mouseup="rmouse.isDown = false"></canvas>
+            <canvas id="card-preview"></canvas>
             <!-- <div style="font-size:12px; padding-left:10px; padding-bottom:5px; color:lightslategray; line-height: 100%; font-family:monospace, 'Courier New', Courier;">{{renderIntv}}-{{stopWatch.str}}</div> -->
         </div>
         
