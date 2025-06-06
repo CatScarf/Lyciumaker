@@ -1,6 +1,6 @@
 # Lycium在线三国杀卡牌制作器
 
-请访问 [Lycium三国杀卡牌制作器](https://lyciumaker.com/) 以使用本应用
+请访问 [Lycium三国杀卡牌制作器](https://catscarf.github.io/) 以使用本应用
 
 仅供学习交流。点个小星星支持一下本项目啦~
 
